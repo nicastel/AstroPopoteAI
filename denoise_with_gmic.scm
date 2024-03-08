@@ -2,29 +2,15 @@
 ; refer to the original post for scripts for v1.79 & older
 ; https://discuss.pixls.us/t/a-masashi-wakui-look-with-gimp/2771/6
 
-(define (script-fu-denoise-gmic
-            theImage
-            baseLayer
+(define (denoise-gmic 
+            filename
         )	
-   ; Initialize an undo, so the process can be undone with a single undo
-     (gimp-image-undo-group-start theImage)
-
-     (plug-in-gmic-qt 1 theImage baseLayer 1 0 "-v - -ms_patch_smooth 0.8,5,3,5,0,1,1,7,5,4,3,2,1,1,1.3,0") ; call denoiser
+   (let* ((image (car (gimp-file-load RUN-NONINTERACTIVE filename filename)))
+          (drawable (car (gimp-image-get-active-layer image))))
+     (plug-in-gmic-qt 1 image image 1 0 "-v - ms_patch_smooth 0.8,5,3,5,0,1,1,7,5,4,3,2,1,1,1.3,0") ; call denoiser
      
-     ;Ensure the updated image is displayed now
-     (gimp-displays-flush)
+     (gimp-file-save RUN-NONINTERACTIVE image drawable filename filename)
+     (gimp-image-delete image)
+)) ;end define
 
-     (gimp-image-undo-group-end theImage)
-
-) ;end define
-
-(script-fu-register "script-fu-denoise-gmic"
-	_"<Image>/Script-Fu/DemoiseGmic..."
-            "This script runs the "
-            "Nicolas Castel"
-            "Nicolas Castel"
-            "Marc 2024"
-            "*"
-	SF-IMAGE		"Image"     0
-	SF-DRAWABLE		"Drawable"  0
-)
+; run via flatpak run org.gimp.GIMP -i -b '(denoise-gmic "foo.tiff")' -b '(gimp-quit 0)'
