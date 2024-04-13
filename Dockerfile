@@ -16,4 +16,4 @@ RUN /opt/venv/bin/pip install -r requirements.txt
 
 COPY . /app
 EXPOSE 7860
-CMD ["streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
+CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
