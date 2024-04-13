@@ -1,0 +1,5 @@
+# python3 -m  pipreqs.pipreqs . --force
+numpy               # General data manipulation
+Pillow              # Reading images
+streamlit           # Web app framework
+torch               # pytorch runtime
