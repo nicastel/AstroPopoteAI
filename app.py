@@ -11,21 +11,15 @@ from file_queue import FileQueue
 
 # Set image warning and max sizes
 WARNING_SIZE = 4096
-MAX_SIZE = 8192
-Image.MAX_IMAGE_PIXELS = 8192
+MAX_SIZE = None
+#Image.MAX_IMAGE_PIXELS = 8192
 
 class App:
     def __init__(self):
         self.queue = None
         self.running = True
 
-    def on_download(self, model_name):
-        self.download_info = st.info(f"Downloading the model: {model_name} (this may take a minute...)", icon ="☁️")
-
-    def off_download(self):
-        self.download_info.empty()
-
-    def cook(self, image:Image, model_name:str, args:dict)->Image.Image:
+    def cook(self, image:Image)->Image.Image:
         # Convert to RGB if not already
         image_rgb = Image.new("RGB", image.size, (255, 255, 255))
         image_rgb.paste(image)
@@ -39,7 +33,7 @@ class App:
         bar = st.progress(0)
 
         # Run the process, yield progress
-        result = None
+        result = image_rgb
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
@@ -74,7 +68,7 @@ class App:
 
         # Show the file uploader and submit button
         with st.form("my-form", clear_on_submit=True):
-            file = st.file_uploader("FILE UPLOADER", type=["png", "jpg", "jpeg", "tiff"])
+            file = st.file_uploader("FILE UPLOADER", type=["fit", "fits","png", "jpg", "jpeg", "tiff"])
             submitted = st.form_submit_button("Cook!")
 
         if submitted and file is not None:
@@ -113,7 +107,7 @@ class App:
 
             # Start the cooking
             a = time.time()
-            image = self.cook(image, model_name, extra_inputs)
+            image = self.cook(image)
             print(f"Cooking took {time.time() - a:.4f} seconds")
 
             # Check if the cooking failed for whatever reason

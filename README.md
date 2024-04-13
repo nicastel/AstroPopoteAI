@@ -14,3 +14,7 @@ Softwares used in the worfklow:
 TBC due to heavy resource usage issues :
 - SCUNet (DeNoising AI based)
 - AstroSleuth (DeBlurring AI based)
+
+Based on docker
+to run install docker and run
+docker run -it docker.io/library/astropopoteai:Dockerfile
