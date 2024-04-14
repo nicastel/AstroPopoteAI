@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 from PIL import Image
@@ -22,37 +23,55 @@ class App:
         self.queue = None
         self.running = True
 
-    def cook(self, file)->str:
+    def cook(self, file:UploadedFile)->str:
         # Show that cooking is starting
         self.info = st.info("Cooking image...", icon="🔥")
+
+        bytes = file.getvalue()
+
+        filename = "/tmp/"+file.name
+        # write the upldoaed file on the disk
+        # Open in "wb" mode to
+        # write a new file, or
+        # "ab" mode to append
+        with open(filename, "wb") as binary_file:
+            # Write bytes to file
+            binary_file.write(bytes)
+            binary_file.flush()
+            binary_file.close()
+
+            file.close()
+            del binary_file
+        del file
 
         # Set the bar to 0
         bar = st.progress(0)
 
-        app=Siril(R'/usr/bin/siril-cli')
+        siril_app=Siril(R'/usr/bin/siril-cli')
 
         try:
-            cmd=Wrapper(app)    #2. its wrapper
-            app.Open()          #2. ...and finally Siril
+            cmd=Wrapper(siril_app)    #2. its wrapper
+            siril_app.Open()          #2. ...and finally Siril
 
             #3. Set preferences
-            process_dir = '../process'
-            cmd.set16bits()
-            cmd.setext('fit')
 
-            cmd.load(file.path)
-            cmd.save("result.fit")
+            #cmd.set16bits()
+            #cmd.setext('fit')
+
+            cmd.load(filename)
+            cmd.autostretch()
+            cmd.save("/app/result.fit")
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
             return None
 
         #6. Closing Siril and deleting Siril instance
-        app.Close()
-        del app
+        siril_app.Close()
+        del siril_app
 
         # Run the process, yield progress
-        result = file
+        result = "/app/result.fit"
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
