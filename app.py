@@ -7,6 +7,9 @@ import time, threading, io, warnings, argparse, json, os
 from os import listdir
 from importlib import import_module
 
+from pysiril.siril   import *
+from pysiril.wrapper import *
+
 from file_queue import FileQueue
 
 # Set image warning and max sizes
@@ -19,21 +22,37 @@ class App:
         self.queue = None
         self.running = True
 
-    def cook(self, image:Image)->Image.Image:
-        # Convert to RGB if not already
-        image_rgb = Image.new("RGB", image.size, (255, 255, 255))
-        image_rgb.paste(image)
-        del image
-
-
+    def cook(self, file)->str:
         # Show that cooking is starting
         self.info = st.info("Cooking image...", icon="🔥")
 
         # Set the bar to 0
         bar = st.progress(0)
 
+        app=Siril(R'/usr/bin/siril-cli')
+
+        try:
+            cmd=Wrapper(app)    #2. its wrapper
+            app.Open()          #2. ...and finally Siril
+
+            #3. Set preferences
+            process_dir = '../process'
+            cmd.set16bits()
+            cmd.setext('fit')
+
+            cmd.load(file.path)
+            cmd.save("result.fit")
+
+        except Exception as e :
+            st.error("Siril error: " +  str(e), icon="❌")
+            return None
+
+        #6. Closing Siril and deleting Siril instance
+        app.Close()
+        del app
+
         # Run the process, yield progress
-        result = image_rgb
+        result = file
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
@@ -74,15 +93,7 @@ class App:
         if submitted and file is not None:
             image = Image.open(file)
 
-            # Resize the image if it is too large
-            if MAX_SIZE is not None and (image.width > MAX_SIZE or image.height > MAX_SIZE):
-                st.warning("Your image was resized to save on resources! To avoid this, run AstroSleuth with colab or locally: https://github.com/Aveygo/AstroSleuth#running", icon="⚠️")
-                if image.width > image.height:
-                    image = image.resize((MAX_SIZE, MAX_SIZE * image.height // image.width))
-                else:
-                    image = image.resize((MAX_SIZE * image.width // image.height, MAX_SIZE))
-
-            elif image.width > WARNING_SIZE or image.height > WARNING_SIZE:
+            if image.width > WARNING_SIZE or image.height > WARNING_SIZE:
                 st.info("Woah, that image is quite large! You may have to wait a while and/or get unexpected errors!", icon="🕒")
 
             # Start the queue
@@ -107,14 +118,16 @@ class App:
 
             # Start the cooking
             a = time.time()
-            image = self.cook(image)
+            result = self.cook(file)
             print(f"Cooking took {time.time() - a:.4f} seconds")
 
             # Check if the cooking failed for whatever reason
-            if image is None:
+            if result is None:
                 st.error("Internal error: Cooking failed, please try again later?", icon="❌")
                 self.close()
                 return
+
+            image = Image.open(result)
 
             # Empty the info box
             self.info.empty()
