@@ -32,7 +32,7 @@ class App:
         # Set the bar to 0
         bar = st.progress(0)
 
-        filename = "/tmp/"+file.name
+        filename = "/tmp/"+file.name.replace(' ', '_').lower()
         # write the upldoaed file on the disk
         # Open in "wb" mode to
         # write a new file, or
@@ -48,12 +48,12 @@ class App:
         del file
 
         # Set the bar to 5
-        bar = st.progress(5)
+        bar.progress(5)
 
         # 1st Step : plate solving with astap
 
         # Set the bar to 20
-        bar = st.progress(20)
+        bar.progress(20)
 
         # 2nd Step : gradient removal with graxpert
 
@@ -93,7 +93,7 @@ class App:
         del siril_app
 
         # Set the bar to 50
-        bar = st.progress(50)
+        bar.progress(50)
 
         # 4th Step : star removal with Starnet
 
