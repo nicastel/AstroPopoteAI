@@ -29,6 +29,9 @@ class App:
 
         bytes = file.getvalue()
 
+        # Set the bar to 0
+        bar = st.progress(0)
+
         filename = "/tmp/"+file.name
         # write the upldoaed file on the disk
         # Open in "wb" mode to
@@ -44,9 +47,22 @@ class App:
             del binary_file
         del file
 
-        # Set the bar to 0
-        bar = st.progress(0)
+        # Set the bar to 5
+        bar = st.progress(5)
 
+        # 1st Step : plate solving with astap
+
+        # Set the bar to 20
+        bar = st.progress(20)
+
+        # 2nd Step : gradient removal with graxpert
+
+        # 3rd Step : processing with Siril
+        # photometric calibration
+        # green noise removal
+        # auto stretch
+        # star desaturation
+        # deconvolution
         siril_app=Siril(R'/usr/bin/siril-cli')
 
         try:
@@ -55,12 +71,18 @@ class App:
 
             #3. Set preferences
 
-            #cmd.set16bits()
-            #cmd.setext('fit')
+            cmd.set16bits()
+            cmd.setext('fit')
 
             cmd.load(filename)
+            #cmd.pcc()
+            cmd.rmgreen()
+            #cmd.unclipstars()
+            #cmd.makepsf(stars) => missing in pysiril
+            #cmd.rl()
             cmd.autostretch()
-            cmd.save("/app/result.fit")
+            cmd.save("/app/result")
+            cmd.savejpg("/app/result")
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
@@ -70,8 +92,15 @@ class App:
         siril_app.Close()
         del siril_app
 
+        # Set the bar to 50
+        bar = st.progress(50)
+
+        # 4th Step : star removal with Starnet
+
+        # 5th Step : astro denoising with darktable on the starless
+
         # Run the process, yield progress
-        result = "/app/result.fit"
+        result = "/app/result.jpg"
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
