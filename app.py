@@ -3,6 +3,8 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 
+import subprocess
+
 from PIL import Image
 import time, threading, io, warnings, argparse, json, os
 from os import listdir
@@ -50,8 +52,10 @@ class App:
         # Set the bar to 5
         bar.progress(5)
 
-        # 1st Step : plate solving with astap
+        st.info("Plate solving with astap...")
 
+        # 1st Step : plate solving with astap
+        subprocess.run(["/app/astap_cli", "-f"+filename+" -update > astap.log"])
         # Set the bar to 20
         bar.progress(20)
 
@@ -63,6 +67,7 @@ class App:
         # auto stretch
         # star desaturation
         # deconvolution
+
         siril_app=Siril(R'/usr/bin/siril-cli')
 
         try:
@@ -75,11 +80,14 @@ class App:
             cmd.setext('fit')
 
             cmd.load(filename)
-            #cmd.pcc()
+            st.info("Photometric calibration with siril...")
+            cmd.pcc()
             cmd.rmgreen()
             #cmd.unclipstars()
             #cmd.makepsf(stars) => missing in pysiril
             #cmd.rl()
+
+            st.info("Auto stretching with siril...")
             cmd.autostretch()
             cmd.save("/app/result")
             cmd.savejpg("/app/result")
