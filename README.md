@@ -20,5 +20,7 @@ TBC due to heavy resource usage issues :
 
 Based on docker
 to run install docker and run the commdands :
+
 docker build -t "astropopoteai:Dockerfile" .
+
 docker run -it docker.io/library/astropopoteai:Dockerfile
