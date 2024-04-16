@@ -41,6 +41,7 @@ ADD https://github.com/nicastel/starnet/releases/download/starnetv1/starnet_weig
 RUN unzip starnet_weights2.zip
 
 COPY . /app
+RUN chmod +x /app/run_starnet.sh
 COPY s3_secrets.py /app/GraXpert-2.2.2/graxpert/
 EXPOSE 7860
 CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]

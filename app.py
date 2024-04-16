@@ -114,7 +114,7 @@ class App:
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
             cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
             cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
-            cmd.set("core.starnet_exe=/app/")
+            cmd.set("core.starnet_exe=/app/run_starnet.sh")
 
             # convert to fit / debayer to start from a debayered fit file
             cmd.cd("/tmp/")
@@ -165,17 +165,23 @@ class App:
             cmd.autostretch()
             bar.progress(60)
             stretch.info("Auto stretching with siril", icon="✅")
-            cmd.save("/app/result")
-            cmd.savejpg("/app/result")
-            cmd.savetif("/app/result")
-            os.remove("/tmp/light_00001_GraXpert.fits")
-            os.remove("/tmp/light_00001.fit")
+            #cmd.savetif("/app/result")
+
 
             # 4th Step : stars removal with starnet v1
             stars = st.info("Remove stars with starnet v1...", icon="🕒")
-            runstarnet("/app/result.tif","/app/starless_result.tif")
+            #runstarnet("/app/result.tif","/app/starless_result.tif")
+            cmd.starnet()
             bar.progress(70)
             stars.info("Remove stars with starnet v1", icon="✅")
+
+            # save finals files
+            cmd.save("/app/result")
+            cmd.savejpg("/app/result")
+
+            # clean up
+            os.remove("/tmp/light_00001_GraXpert.fits")
+            os.remove("/tmp/light_00001.fit")
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
