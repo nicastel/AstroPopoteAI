@@ -86,22 +86,6 @@ class App:
         # Set the bar to 5
         bar.progress(5)
 
-        st.info("Plate solving with astap...")
-
-        # 1st Step : plate solving with astap
-        run_shell_command("/app/astap_cli -f"+filename+" -update")
-        # Set the bar to 20
-        bar.progress(20)
-
-        # 2nd Step : gradient removal with graxpert
-
-        # 3rd Step : processing with Siril
-        # photometric calibration
-        # green noise removal
-        # auto stretch
-        # star desaturation
-        # deconvolution
-
         siril_app=Siril(R'/usr/bin/siril-cli')
 
         try:
@@ -113,18 +97,44 @@ class App:
             cmd.set16bits()
             cmd.setext('fit')
 
+            # convert to fit / debayer
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
+
+            platesolve = st.info("Plate solving with astap...")
+
+            # 1st Step : plate solving with astap
+            run_shell_command("/app/astap_cli -f /tmp/light_00001.fit -update")
+
+            # Set the bar to 20
+            bar.progress(20)
+            platesolve.info("Plate solving with astap",icon="✅")
+
+            # 2nd Step : gradient removal with graxpert
+
+            # 3rd Step : processing with Siril
+            # photometric calibration
+            # green noise removal
+            # auto stretch
+            # star desaturation
+            # deconvolution
+
             cmd.load("light_00001.fit")
-            st.info("Photometric calibration with siril...")
-            cmd.pcc()
+            photometric = st.info("Photometric calibration with siril...")
+            cmd.pcc(catalog="nomad")
             cmd.rmgreen()
+            # Set the bar to 20
+            bar.progress(30)
+            photometric.info("Photometric calibration with siril",icon="✅")
+
             #cmd.unclipstars()
             #cmd.makepsf(stars) => missing in pysiril
             #cmd.rl()
 
-            st.info("Auto stretching with siril...")
+            stretch = st.info("Auto stretching with siril...")
             cmd.autostretch()
+            bar.progress(40)
+            stretch.info("Auto stretching with siril",icon="✅")
             cmd.save("/app/result")
             cmd.savejpg("/app/result")
 
