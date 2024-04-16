@@ -141,9 +141,11 @@ class App:
             bar.progress(40)
             photometric.info("Photometric calibration with siril", icon="✅")
 
-            #cmd.unclipstars()
-            #cmd.makepsf(stars) => missing in pysiril
-            #cmd.rl()
+            deconvol = st.info("Deconvolution with siril...", icon="🕒")
+            cmd.unclipstars()
+            cmd.Execute("makepsf stars")
+            cmd.Execute("rl")
+            deconvol.info("Deconvolution with siril", icon="✅")
 
             stretch = st.info("Auto stretching with siril...", icon="🕒")
             cmd.autostretch()
