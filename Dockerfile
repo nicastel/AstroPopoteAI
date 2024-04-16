@@ -7,7 +7,7 @@ RUN add-apt-repository ppa:lock042/siril
 RUN \
     apt-get update && \
     apt-get -y install \
-    darktable python3-pip python3-venv wget siril unzip
+    darktable python3-pip python3-venv wget siril unzip xz-utils
 
 # Install python dependencies
 RUN python3 -m venv /opt/venv
@@ -21,6 +21,16 @@ ADD https://github.com/nicastel/AstroPopoteAI/releases/download/astap/astap_comm
 RUN unzip astap_command-line_version_Linux_aarch64.zip
 RUN wget -O d20_star_database.zip "https://drive.usercontent.google.com/download?id=1aCAKK0tB6eCNrzqPvwfCq-vg70ik0Ug4&export=download&authuser=0&confirm=t&uuid=a4415b42-70d3-4bd4-8025-7889ce24e518&at=APZUnTWIGJsa5pA0mQlPiX83UAgi%3A1713168442602"
 RUN unzip d20_star_database.zip
+
+# Stars catalog for siril
+ADD https://free-astro.org/download/kstars-siril-catalogues/namedstars.dat.xz namedstars.dat.xz
+RUN unxz namedstars.dat.xz
+ADD https://free-astro.org/download/kstars-siril-catalogues/unnamedstars.dat.xz unnamedstars.dat.xz
+RUN unxz unnamedstars.dat.xz
+ADD https://free-astro.org/download/kstars-siril-catalogues/deepstars.dat.xz deepstars.dat.xz
+RUN unxz deepstars.dat.xz
+ADD https://free-astro.org/download/kstars-siril-catalogues/USNO-NOMAD-1e8.dat.xz USNO-NOMAD-1e8.dat.xz
+RUN unxz USNO-NOMAD-1e8.dat.xz
 
 COPY . /app
 EXPOSE 7860

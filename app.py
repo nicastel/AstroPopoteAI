@@ -96,19 +96,25 @@ class App:
 
             cmd.set16bits()
             cmd.setext('fit')
+            cmd.set("core.catalogue_namedstars=/app/namedstars.dat")
+            cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
+            cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
+            cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
+            #cmd.set("starfinder.focal_length", 697.37)
+            #cmd.set("starfinder.pixel_size", 1.45)
 
             # convert to fit / debayer
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
 
-            platesolve = st.info("Plate solving with astap...")
+            platesolve = st.info("Plate solving with astap...", icon="🕒")
 
             # 1st Step : plate solving with astap
             run_shell_command("/app/astap_cli -f /tmp/light_00001.fit -update")
 
             # Set the bar to 20
             bar.progress(20)
-            platesolve.info("Plate solving with astap",icon="✅")
+            platesolve.info("Plate solving with astap", icon="✅")
 
             # 2nd Step : gradient removal with graxpert
 
@@ -120,21 +126,21 @@ class App:
             # deconvolution
 
             cmd.load("light_00001.fit")
-            photometric = st.info("Photometric calibration with siril...")
-            cmd.pcc(catalog="nomad")
+            photometric = st.info("Photometric calibration with siril...", icon="🕒")
+            cmd.pcc()
             cmd.rmgreen()
             # Set the bar to 20
             bar.progress(30)
-            photometric.info("Photometric calibration with siril",icon="✅")
+            photometric.info("Photometric calibration with siril", icon="✅")
 
             #cmd.unclipstars()
             #cmd.makepsf(stars) => missing in pysiril
             #cmd.rl()
 
-            stretch = st.info("Auto stretching with siril...")
+            stretch = st.info("Auto stretching with siril...", icon="🕒")
             cmd.autostretch()
             bar.progress(40)
-            stretch.info("Auto stretching with siril",icon="✅")
+            stretch.info("Auto stretching with siril", icon="✅")
             cmd.save("/app/result")
             cmd.savejpg("/app/result")
 
