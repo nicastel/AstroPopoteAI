@@ -23,5 +23,5 @@ RUN wget -O d20_star_database.zip "https://drive.usercontent.google.com/download
 RUN unzip d20_star_database.zip
 
 COPY . /app
-EXPOSE 49152
-CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=49152", "--browser.gatherUsageStats", "false"]
+EXPOSE 7860
+CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
