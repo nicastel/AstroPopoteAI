@@ -100,12 +100,11 @@ class App:
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
             cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
             cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
-            #cmd.set("starfinder.focal_length", 697.37)
-            #cmd.set("starfinder.pixel_size", 1.45)
 
             # convert to fit / debayer
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
+            os.remove(filename)
 
             platesolve = st.info("Plate solving with astap...", icon="🕒")
 
@@ -143,6 +142,7 @@ class App:
             stretch.info("Auto stretching with siril", icon="✅")
             cmd.save("/app/result")
             cmd.savejpg("/app/result")
+            os.remove("/tmp/light_00001.fit")
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
