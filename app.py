@@ -246,7 +246,7 @@ class App:
             # Show success / Download button
             encoding_prompt.empty()
             st.success('Done! Please use the download button to get the highest resolution', icon="🎉")
-            st.download_button("Download Full Resolution", b.getvalue(), file.name, "image/" + file_type)
+            st.download_button("Download Full Resolution", b.getvalue(), "result.jpg", "image/jpeg")
 
             # Show preview
             image.thumbnail([1024, 1024])
