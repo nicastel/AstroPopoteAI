@@ -1,3 +1,4 @@
+import sys
 import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 from streamlit.runtime.uploaded_file_manager import UploadedFile
@@ -14,6 +15,39 @@ from pysiril.siril   import *
 from pysiril.wrapper import *
 
 from file_queue import FileQueue
+
+import shlex
+import logging
+import subprocess
+from io import StringIO
+
+def run_shell_command(command_line):
+    command_line_args = shlex.split(command_line)
+
+    logging.info('Subprocess: "' + command_line + '"')
+
+    try:
+        command_line_process = subprocess.Popen(
+            command_line_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+
+        process_output, _ =  command_line_process.communicate()
+
+        # process_output is now a string, not a file,
+        # you may want to do:
+        # process_output = StringIO(process_output)
+        print(process_output)
+    except (OSError) as exception:
+        logging.info('Exception occured: ' + str(exception))
+        logging.info('Subprocess failed')
+        return False
+    else:
+        # no exception was raised
+        logging.info('Subprocess finished')
+
+    return True
 
 # Set image warning and max sizes
 WARNING_SIZE = 4096
@@ -55,7 +89,7 @@ class App:
         st.info("Plate solving with astap...")
 
         # 1st Step : plate solving with astap
-        subprocess.run(["/app/astap_cli", "-f"+filename+" -update > astap.log"])
+        run_shell_command("/app/astap_cli -f"+filename+" -update")
         # Set the bar to 20
         bar.progress(20)
 
@@ -79,7 +113,9 @@ class App:
             cmd.set16bits()
             cmd.setext('fit')
 
-            cmd.load(filename)
+            cmd.cd("/tmp/")
+            cmd.convert("light",debayer=True)
+            cmd.load("light_00001.fit")
             st.info("Photometric calibration with siril...")
             cmd.pcc()
             cmd.rmgreen()
