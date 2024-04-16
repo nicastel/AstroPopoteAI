@@ -17,3 +17,9 @@ scipy
 tensorflow == 2.13.1
 xisf
 packaging
+
+#starnet
+tifffile
+tensorflow
+tf-keras
+matplotlib

@@ -21,6 +21,18 @@ import logging
 import subprocess
 from io import StringIO
 
+import tensorflow as tf
+import tifffile as tiff
+
+from starnet_v1_TF2 import StarNet
+
+def runstarnet(in_name,out_name):
+    tf.get_logger().setLevel(logging.ERROR)
+    starnet = StarNet(mode = 'RGB', window_size = 512, stride = 128)
+    starnet.load_model('/app/weights', '/app/history')
+    print("Weights Loaded!")
+    starnet.transform(in_name, out_name)
+
 def run_shell_command(command_line):
     command_line_args = shlex.split(command_line)
 
@@ -102,8 +114,9 @@ class App:
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
             cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
             cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
+            cmd.set("core.starnet_exe=/app/")
 
-            # convert to fit / debayer
+            # convert to fit / debayer to start from a debayered fit file
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
             os.remove(filename)
@@ -127,7 +140,7 @@ class App:
             bar.progress(30)
             gradient.info("Remove gradient with graXpert", icon="✅")
 
-            # 3rd Step : processing with Siril
+            # 3rd Step : various processing with Siril
             # photometric calibration
             # green noise removal
             # auto stretch
@@ -145,16 +158,24 @@ class App:
             cmd.unclipstars()
             cmd.Execute("makepsf stars")
             cmd.Execute("rl")
+            bar.progress(50)
             deconvol.info("Deconvolution with siril", icon="✅")
 
             stretch = st.info("Auto stretching with siril...", icon="🕒")
             cmd.autostretch()
-            bar.progress(50)
+            bar.progress(60)
             stretch.info("Auto stretching with siril", icon="✅")
             cmd.save("/app/result")
             cmd.savejpg("/app/result")
+            cmd.savetif("/app/result")
             os.remove("/tmp/light_00001_GraXpert.fits")
             os.remove("/tmp/light_00001.fit")
+
+            # 4th Step : stars removal with starnet v1
+            stars = st.info("Remove stars with starnet v1...", icon="🕒")
+            runstarnet("/app/result.tif","/app/starless_result.tif")
+            bar.progress(70)
+            stars.info("Remove stars with starnet v1", icon="✅")
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")

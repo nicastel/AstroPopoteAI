@@ -36,6 +36,10 @@ RUN unxz USNO-NOMAD-1e8.dat.xz
 ADD https://github.com/Steffenhir/GraXpert/archive/refs/tags/2.2.2.zip GraXpert-2.2.2.zip
 RUN unzip GraXpert-2.2.2.zip
 
+# Starnet
+ADD https://github.com/nicastel/starnet/releases/download/starnetv1/starnet_weights2.zip starnet_weights2.zip
+RUN unzip starnet_weights2.zip
+
 COPY . /app
 COPY s3_secrets.py /app/GraXpert-2.2.2/graxpert/
 EXPOSE 7860
