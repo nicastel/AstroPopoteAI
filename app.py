@@ -86,6 +86,8 @@ class App:
         # Set the bar to 5
         bar.progress(5)
 
+        convert = st.info("Convert to fit / debayer with siril...", icon="🕒")
+
         siril_app=Siril(R'/usr/bin/siril-cli')
 
         try:
@@ -106,16 +108,24 @@ class App:
             cmd.convert("light",debayer=True)
             os.remove(filename)
 
+            bar.progress(10)
+            convert.info("Convert to fit / debayer with siril", icon="✅")
+
             platesolve = st.info("Plate solving with astap...", icon="🕒")
 
             # 1st Step : plate solving with astap
             run_shell_command("/app/astap_cli -f /tmp/light_00001.fit -update")
 
-            # Set the bar to 20
             bar.progress(20)
             platesolve.info("Plate solving with astap", icon="✅")
 
             # 2nd Step : gradient removal with graxpert
+            gradient = st.info("Remove gradient with graXpert...", icon="🕒")
+            os.chdir("/app/GraXpert-2.2.2")
+            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fit -cli")
+
+            bar.progress(30)
+            gradient.info("Remove gradient with graXpert", icon="✅")
 
             # 3rd Step : processing with Siril
             # photometric calibration
@@ -124,12 +134,11 @@ class App:
             # star desaturation
             # deconvolution
 
-            cmd.load("light_00001.fit")
+            cmd.load("light_00001_GraXpert.fits")
             photometric = st.info("Photometric calibration with siril...", icon="🕒")
             cmd.pcc()
             cmd.rmgreen()
-            # Set the bar to 20
-            bar.progress(30)
+            bar.progress(40)
             photometric.info("Photometric calibration with siril", icon="✅")
 
             #cmd.unclipstars()
@@ -138,10 +147,11 @@ class App:
 
             stretch = st.info("Auto stretching with siril...", icon="🕒")
             cmd.autostretch()
-            bar.progress(40)
+            bar.progress(50)
             stretch.info("Auto stretching with siril", icon="✅")
             cmd.save("/app/result")
             cmd.savejpg("/app/result")
+            os.remove("/tmp/light_00001_GraXpert.fits")
             os.remove("/tmp/light_00001.fit")
 
         except Exception as e :
@@ -191,7 +201,7 @@ class App:
 
     def render(self):
         st.title('AstroPopoteAI')
-        st.subheader("Automatically Cook deep space image with AI")
+        st.subheader("Automatically Cook deep space images with open source tools")
 
         # Show the file uploader and submit button
         with st.form("my-form", clear_on_submit=True):

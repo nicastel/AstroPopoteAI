@@ -3,11 +3,11 @@ MAINTAINER Nicolas Castel <nic.castel@gmail.com>
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:lock042/siril
+RUN add-apt-repository ppa:lock042/siril # for latest siril release
 RUN \
     apt-get update && \
     apt-get -y install \
-    darktable python3-pip python3-venv wget siril unzip xz-utils
+    darktable python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk
 
 # Install python dependencies
 RUN python3 -m venv /opt/venv
@@ -32,6 +32,11 @@ RUN unxz deepstars.dat.xz
 ADD https://free-astro.org/download/kstars-siril-catalogues/USNO-NOMAD-1e8.dat.xz USNO-NOMAD-1e8.dat.xz
 RUN unxz USNO-NOMAD-1e8.dat.xz
 
+# Graxpert
+ADD https://github.com/Steffenhir/GraXpert/archive/refs/tags/2.2.2.zip GraXpert-2.2.2.zip
+RUN unzip GraXpert-2.2.2.zip
+
 COPY . /app
+COPY s3_secrets.py /app/GraXpert-2.2.2/graxpert/
 EXPOSE 7860
 CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]

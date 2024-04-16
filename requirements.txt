@@ -1,3 +1,19 @@
 # python3 -m  pipreqs.pipreqs . --force
 Pillow              # Reading images
 streamlit           # Web app framework
+
+# graxpert requirements
+appdirs
+astropy
+customtkinter
+minio
+ml_dtypes
+numpy<=1.24.3,>=1.22
+#Pillow
+pykrige
+requests
+scikit-image == 0.21.0
+scipy
+tensorflow == 2.13.1
+xisf
+packaging
