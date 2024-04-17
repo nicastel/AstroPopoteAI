@@ -14,9 +14,10 @@ if len(sys.argv) > 1:
         print("")
         sys.stdout.flush()
     else:
+        # -i input.tif -o starless_imput.tif
         starnet = StarNet(mode = 'RGB', window_size = 512, stride = 128)
         starnet.load_model('./weights', './history')
         print("Weights Loaded!")
         in_name = sys.argv[2]
-        out_name = sys.argv[3]
+        out_name = sys.argv[4]
         starnet.transform(in_name, out_name)
