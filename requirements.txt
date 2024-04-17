@@ -1,4 +1,6 @@
 # python3 -m  pipreqs.pipreqs . --force
+
+# AstroPopoteAI web gui requirements
 Pillow              # Reading images
 streamlit           # Web app framework
 
@@ -18,8 +20,9 @@ tensorflow == 2.13.1
 xisf
 packaging
 
-#starnet
+# starnet requirements
 tifffile
-tensorflow
+#tensorflow
+#numpy
 tf-keras
 matplotlib

@@ -21,18 +21,6 @@ import logging
 import subprocess
 from io import StringIO
 
-import tensorflow as tf
-import tifffile as tiff
-
-from starnet_v1_TF2 import StarNet
-
-def runstarnet(in_name,out_name):
-    tf.get_logger().setLevel(logging.ERROR)
-    starnet = StarNet(mode = 'RGB', window_size = 512, stride = 128)
-    starnet.load_model('/app/weights', '/app/history')
-    print("Weights Loaded!")
-    starnet.transform(in_name, out_name)
-
 def run_shell_command(command_line):
     command_line_args = shlex.split(command_line)
 
@@ -136,7 +124,6 @@ class App:
             gradient = st.info("Remove gradient with graXpert...", icon="🕒")
             os.chdir("/app/GraXpert-2.2.2")
             run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fit -cli")
-
             bar.progress(30)
             gradient.info("Remove gradient with graXpert", icon="✅")
 
@@ -154,26 +141,32 @@ class App:
             bar.progress(40)
             photometric.info("Photometric calibration with siril", icon="✅")
 
-            deconvol = st.info("Deconvolution with siril...", icon="🕒")
+            deconvol = st.info("Apply deconvolution with siril...", icon="🕒")
             cmd.unclipstars()
             cmd.Execute("makepsf stars")
             cmd.Execute("rl")
             bar.progress(50)
-            deconvol.info("Deconvolution with siril", icon="✅")
+            deconvol.info("Apply deconvolution with siril", icon="✅")
 
-            stretch = st.info("Auto stretching with siril...", icon="🕒")
+            stretch = st.info("Auto stretch with siril...", icon="🕒")
             cmd.autostretch()
             bar.progress(60)
-            stretch.info("Auto stretching with siril", icon="✅")
+            stretch.info("Auto stretch with siril", icon="✅")
             #cmd.savetif("/app/result")
-
 
             # 4th Step : stars removal with starnet v1
             stars = st.info("Remove stars with starnet v1...", icon="🕒")
-            #runstarnet("/app/result.tif","/app/starless_result.tif")
             cmd.starnet()
             bar.progress(70)
+            cmd.savetif("/tmp/starless",astro=True)
             stars.info("Remove stars with starnet v1", icon="✅")
+
+            # 5th Step ; starless denoising and colors/contrast enhancements with darktable
+            darktable = st.info("Denoise and enhance colors and contrast of starless with darktable...", icon="🕒")
+            run_shell_command("darktable-cli /tmp/starless.tif /tmp/out.tif --style astro")
+            cmd.load("out.tif")
+            bar.progress(80)
+            darktable.info("Denoise and enhance colors and contrast of starless with darktable...", icon="✅")
 
             # save finals files
             cmd.save("/app/result")

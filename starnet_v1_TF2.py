@@ -33,49 +33,6 @@ class StarNet():
     def __str__(self):
         return "Starnet instance"
 
-    def load_training_dataset(self):
-        self.weights = []
-        original_files = [f for f in listdir(self.train_folder + "/original/") if isfile(join(self.train_folder + "/original/", f))\
-                          and f.endswith(".tif")]
-        starless_files = [f for f in listdir(self.train_folder + "/starless/") if isfile(join(self.train_folder + "/starless/", f))\
-                          and f.endswith(".tif")]
-
-        assert len(original_files) == len(starless_files), 'Numbers of files in `starless` and `original` subfolders should be equal'
-
-        assert len(original_files) > 0 and len(starless_files) > 0, 'No training data found in {}'.format(self.train_folder)
-
-        for i in range(len(original_files)):
-            assert(original_files[i] == starless_files[i]), 'Corresponding names of original and starless files should be equal'
-
-        print("Total training images found: {}".format(len(original_files)))
-
-        self.original = []
-        self.starless = []
-
-        for i in original_files:
-            self.original.append(np.array(img.open(self.train_folder + "/original/" + i), dtype = np.float32))
-            self.starless.append(np.array(img.open(self.train_folder + "/starless/" + i), dtype = np.float32))
-
-
-        total_pixels = 0
-
-        for i in range(len(original_files)):
-            assert self.original[i].shape == self.starless[i].shape, 'Image sizes are not equal: {}/original/{} and {}/starless/{}'\
-                                                                      .format(self.train_folder, original_files[i],\
-                                                                      self.train_folder, starless_files[i])
-
-            total_pixels += self.original[i].shape[0] * self.original[i].shape[1]
-            self.weights.append(self.original[i].shape[0] * self.original[i].shape[1])
-
-        print("Total size of training images: %.2f MP" % (total_pixels / 1e6))
-
-        self.iters_per_epoch = total_pixels // (self.window_size * self.window_size)
-
-        self.weights = [i / np.sum(self.weights) for i in self.weights]
-
-        print("One epoch is set to %d iterations" % self.iters_per_epoch)
-        print("Training dataset has been successfully loaded!")
-
     def load_model(self, weights = None, history = None):
         self.G = self._generator(m = 64)
         self.D = self._discriminator()
@@ -157,44 +114,6 @@ class StarNet():
             return self.original[r][h:h+self.window_size, w:w+self.window_size] / 255
         else:
             return self.starless[r][h:h+self.window_size, w:w+self.window_size] / 255
-
-    def generate_input(self, iterations = 1, augmentation = False):
-        for _ in range(iterations):
-            o = np.zeros((self.batch_size, self.window_size, self.window_size, self.input_channels), dtype = np.float32)
-            s = np.zeros((self.batch_size, self.window_size, self.window_size, self.input_channels), dtype = np.float32)
-            for i in range(self.batch_size):
-                if augmentation:
-                    r = int(np.random.choice(range(len(self.original)), 1, p = self.weights))
-                    h = np.random.randint(self.original[r].shape[0] - self.window_size)
-                    w = np.random.randint(self.original[r].shape[1] - self.window_size)
-                    o[i], s[i] = self._augmentator(self._get_sample(r, h, w, type = 'original'),\
-                                                   self._get_sample(r, h, w, type = 'starless'))
-                else:
-                    o[i] = self._get_sample(type = 'original')
-                    s[i] = self._get_sample(type = 'starless')
-        return o, s
-
-
-    def plot_history(self, last = None):
-        assert self.history != {}, 'Empty training history, nothing to plot'
-        fig, ax = plt.subplots(4, 3, sharex = True, figsize=(16, 14))
-
-        keys = list(self.history.keys())
-
-        keys = [k for k in keys if k != '']
-
-        for i in range(4):
-            for j in range(3):
-                if last: ax[i][j].plot(self.history[keys[j+3*i]][-last:])
-                else: ax[i][j].plot(self.history[keys[j+3*i]])
-                ax[i][j].set_title(keys[j+3*i])
-
-    def save_model(self, weights_filename, history_filename = None):
-        self.G.save_weights(weights_filename + '_G_' + self.mode + '.h5')
-        self.D.save_weights(weights_filename + '_D_' + self.mode + '.h5')
-        if history_filename:
-            with open(history_filename + '_' + self.mode + '.pkl', 'wb') as f:
-                pickle.dump(self.history, f)
 
     def transform(self, in_name, out_name):
         data = tiff.imread(in_name)

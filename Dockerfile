@@ -3,11 +3,15 @@ MAINTAINER Nicolas Castel <nic.castel@gmail.com>
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:lock042/siril # for latest siril release
+# Add PPA for latest siril releas
+RUN add-apt-repository ppa:lock042/siril
 RUN \
     apt-get update && \
     apt-get -y install \
-    darktable python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk
+    python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk gpg
+RUN echo 'deb http://download.opensuse.org/repositories/graphics:/darktable/xUbuntu_23.10/ /' | tee /etc/apt/sources.list.d/graphics:darktable.list
+RUN curl -fsSL https://download.opensuse.org/repositories/graphics:darktable/xUbuntu_23.10/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/graphics_darktable.gpg > /dev/null
+RUN apt-get -y install darktable
 
 # Install python dependencies
 RUN python3 -m venv /opt/venv
@@ -16,8 +20,19 @@ RUN /opt/venv/bin/pip install -r requirements.txt
 ADD https://gitlab.com/free-astro/pysiril/uploads/8224707c29669f255ad43da3b93bc5ec/pysiril-0.0.15-py3-none-any.whl pysiril-0.0.15-py3-none-any.whl
 RUN /opt/venv/bin/pip install pysiril-0.0.15-py3-none-any.whl
 
-# Astap cli and star dabase for plate solving
+# Astap cli and star database for plate solving
 ADD https://github.com/nicastel/AstroPopoteAI/releases/download/astap/astap_command-line_version_Linux_aarch64.zip astap_command-line_version_Linux_aarch64.zip
+ADD https://github.com/nicastel/AstroPopoteAI/releases/download/astap/astap_command-line_version_Linux_amd64.zip astap_command-line_version_Linux_amd64.zip
+# unzip the proper file for either aarch64 or amd64 architecture
+#RUN /bin/bash -c 'set -ex && \
+#    ARCH=`uname -m` && \
+#    if [ "$ARCH" == "arm64" ]; then \
+#    echo "aarch64" && \
+#    unzip astap_command-line_version_Linux_aarch64.zip; \
+#    else \
+#    echo "unknown arch assuming amd64" && \
+#    unzip astap_command-line_version_Linux_amd64.zip; \
+#    fi'
 RUN unzip astap_command-line_version_Linux_aarch64.zip
 RUN wget -O d20_star_database.zip "https://drive.usercontent.google.com/download?id=1aCAKK0tB6eCNrzqPvwfCq-vg70ik0Ug4&export=download&authuser=0&confirm=t&uuid=a4415b42-70d3-4bd4-8025-7889ce24e518&at=APZUnTWIGJsa5pA0mQlPiX83UAgi%3A1713168442602"
 RUN unzip d20_star_database.zip
@@ -40,8 +55,13 @@ RUN unzip GraXpert-2.2.2.zip
 ADD https://github.com/nicastel/starnet/releases/download/starnetv1/starnet_weights2.zip starnet_weights2.zip
 RUN unzip starnet_weights2.zip
 
+# Darktable style foler creation
+RUN mkdir -p /root/.config/darktable/styles
+
 COPY . /app
 RUN chmod +x /app/run_starnet.sh
 COPY s3_secrets.py /app/GraXpert-2.2.2/graxpert/
+COPY astro.dtstyle /root/.config/darktable/styles
+
 EXPOSE 7860
 CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
