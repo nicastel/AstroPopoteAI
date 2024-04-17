@@ -21,3 +21,4 @@ if len(sys.argv) > 1:
         in_name = sys.argv[2]
         out_name = sys.argv[4]
         starnet.transform(in_name, out_name)
+        print("100% finished")
