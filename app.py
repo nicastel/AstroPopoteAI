@@ -96,7 +96,6 @@ class App:
 
             #3. Set preferences
 
-            cmd.set16bits()
             cmd.setext('fit')
             cmd.set("core.catalogue_namedstars=/app/namedstars.dat")
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
@@ -122,7 +121,7 @@ class App:
 
             # 2nd Step : gradient removal with graxpert
             gradient = st.info("Remove gradient with graXpert...", icon="🕒")
-            os.chdir("/app/GraXpert-2.2.2")
+            os.chdir("/app/GraXpert-3.0.0")
             run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fit -cli")
             bar.progress(30)
             gradient.info("Remove gradient with graXpert", icon="✅")
@@ -159,11 +158,12 @@ class App:
             cmd.starnet()
             bar.progress(70)
             cmd.savetif("/tmp/starless",astro=True)
+            cmd.savepng("/tmp/starless")
             stars.info("Remove stars with starnet v1", icon="✅")
 
             # 5th Step ; starless denoising and colors/contrast enhancements with darktable
             darktable = st.info("Denoise and enhance colors and contrast of starless with darktable...", icon="🕒")
-            run_shell_command("darktable-cli /tmp/starless.tif /tmp/out.tif --style astro")
+            run_shell_command("darktable-cli /tmp/starless.png /tmp/out.tif --style astro --verbose --core --configdir /root/.config/darktable/")
             cmd.load("out.tif")
             bar.progress(80)
             darktable.info("Denoise and enhance colors and contrast of starless with darktable...", icon="✅")

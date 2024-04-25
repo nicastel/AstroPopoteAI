@@ -3,15 +3,14 @@ MAINTAINER Nicolas Castel <nic.castel@gmail.com>
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y software-properties-common
-# Add PPA for latest siril releas
+# Add PPA for latest siril release
 RUN add-apt-repository ppa:lock042/siril
+# Add PPA for latest darktable release
+RUN add-apt-repository ppa:ubuntuhandbook1/darktable
 RUN \
     apt-get update && \
     apt-get -y install \
-    python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk gpg
-RUN echo 'deb http://download.opensuse.org/repositories/graphics:/darktable/xUbuntu_23.10/ /' | tee /etc/apt/sources.list.d/graphics:darktable.list
-RUN curl -fsSL https://download.opensuse.org/repositories/graphics:darktable/xUbuntu_23.10/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/graphics_darktable.gpg > /dev/null
-RUN apt-get -y install darktable
+    python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk darktable ffmpeg libsm6 libxext6
 
 # Install python dependencies
 RUN python3 -m venv /opt/venv
@@ -48,19 +47,19 @@ ADD https://free-astro.org/download/kstars-siril-catalogues/USNO-NOMAD-1e8.dat.x
 RUN unxz USNO-NOMAD-1e8.dat.xz
 
 # Graxpert
-ADD https://github.com/Steffenhir/GraXpert/archive/refs/tags/2.2.2.zip GraXpert-2.2.2.zip
-RUN unzip GraXpert-2.2.2.zip
+ADD https://github.com/Steffenhir/GraXpert/archive/refs/tags/3.0.0.zip GraXpert-3.0.0.zip
+RUN unzip GraXpert-3.0.0.zip
 
 # Starnet
 ADD https://github.com/nicastel/starnet/releases/download/starnetv1/starnet_weights2.zip starnet_weights2.zip
 RUN unzip starnet_weights2.zip
 
-# Darktable style foler creation
+# Darktable style folder creation
 RUN mkdir -p /root/.config/darktable/styles
 
 COPY . /app
 RUN chmod +x /app/run_starnet.sh
-COPY s3_secrets.py /app/GraXpert-2.2.2/graxpert/
+COPY s3_secrets.py /app/GraXpert-3.0.0/graxpert/
 COPY astro.dtstyle /root/.config/darktable/styles
 
 EXPOSE 7860
