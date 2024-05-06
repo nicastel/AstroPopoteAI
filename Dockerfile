@@ -10,7 +10,7 @@ RUN add-apt-repository ppa:ubuntuhandbook1/darktable
 RUN \
     apt-get update && \
     apt-get -y install \
-    python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk darktable ffmpeg libsm6 libxext6
+    python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk darktable
 
 # Install python dependencies
 RUN python3 -m venv /opt/venv
@@ -47,8 +47,8 @@ ADD https://free-astro.org/download/kstars-siril-catalogues/USNO-NOMAD-1e8.dat.x
 RUN unxz USNO-NOMAD-1e8.dat.xz
 
 # Graxpert
-ADD https://github.com/Steffenhir/GraXpert/archive/refs/tags/3.0.0.zip GraXpert-3.0.0.zip
-RUN unzip GraXpert-3.0.0.zip
+ADD https://github.com/Steffenhir/GraXpert/archive/refs/tags/3.0.2.zip GraXpert-3.0.2.zip
+RUN unzip GraXpert-3.0.2.zip
 
 # Starnet
 ADD https://github.com/nicastel/starnet/releases/download/starnetv1/starnet_weights2.zip starnet_weights2.zip
@@ -59,7 +59,7 @@ RUN mkdir -p /root/.config/darktable/styles
 
 COPY . /app
 RUN chmod +x /app/run_starnet.sh
-COPY s3_secrets.py /app/GraXpert-3.0.0/graxpert/
+COPY s3_secrets.py /app/GraXpert-3.0.2/graxpert/
 COPY astro.dtstyle /root/.config/darktable/styles
 
 EXPOSE 7860
