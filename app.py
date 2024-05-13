@@ -86,6 +86,8 @@ class App:
         # Set the bar to 5
         bar.progress(5)
 
+        imageLocation = st.empty()
+
         convert = st.info("Convert to fit / debayer with siril...", icon="🕒")
 
         siril_app=Siril(R'/usr/bin/siril-cli')
@@ -96,7 +98,7 @@ class App:
 
             #3. Set preferences
 
-            cmd.setext('fit')
+            cmd.setext('fits')
             cmd.set("core.catalogue_namedstars=/app/namedstars.dat")
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
             cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
@@ -107,6 +109,15 @@ class App:
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
             os.remove(filename)
+            cmd.load("light_00001.fits")
+            cmd.autostretch()
+            cmd.savejpg("/tmp/preview")
+            cmd.close()
+
+            image = Image.open("/tmp/preview.jpg")
+            # Show preview
+            image.thumbnail([1024, 1024])
+            imageLocation.image(image, caption='Image preview', use_column_width=True)
 
             bar.progress(10)
             convert.info("Convert to fit / debayer with siril", icon="✅")
@@ -114,7 +125,7 @@ class App:
             platesolve = st.info("Plate solving with astap...", icon="🕒")
 
             # 1st Step : plate solving with astap
-            run_shell_command("/app/astap_cli -f /tmp/light_00001.fit -update")
+            run_shell_command("/app/astap_cli -f /tmp/light_00001.fits -update")
 
             bar.progress(20)
             platesolve.info("Plate solving with astap", icon="✅")
@@ -122,7 +133,7 @@ class App:
             # 2nd Step : gradient removal with graxpert
             gradient = st.info("Remove gradient with graXpert...", icon="🕒")
             os.chdir("/app/GraXpert-3.0.2")
-            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fit -cli")
+            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fits -cli")
             bar.progress(30)
             gradient.info("Remove gradient with graXpert", icon="✅")
 
@@ -134,21 +145,52 @@ class App:
             # deconvolution
 
             cmd.load("light_00001_GraXpert.fits")
+            cmd.autostretch()
+
+            cmd.savejpg("/tmp/preview")
+
+            image.close()
+            image = Image.open("/tmp/preview.jpg")
+            # Show preview
+            image.thumbnail([1024, 1024])
+            imageLocation.image(image, caption='Image preview', use_column_width=True)
+
+            cmd.load("light_00001_GraXpert.fits")
             photometric = st.info("Photometric calibration with siril...", icon="🕒")
             cmd.pcc()
             cmd.rmgreen()
+            cmd.save("light_00001_GraXpert_pcc_green")
+            cmd.autostretch()
+            cmd.savejpg("/tmp/preview")
+
+            image.close()
+            image = Image.open("/tmp/preview.jpg")
+            # Show preview
+            image.thumbnail([1024, 1024])
+            imageLocation.image(image, caption='Image preview', use_column_width=True)
+
             bar.progress(40)
             photometric.info("Photometric calibration with siril", icon="✅")
 
             deconvol = st.info("Apply deconvolution with siril...", icon="🕒")
+            cmd.load("light_00001_GraXpert_pcc_green.fits")
             cmd.unclipstars()
             cmd.Execute("makepsf stars")
             cmd.Execute("rl")
-            bar.progress(50)
-            deconvol.info("Apply deconvolution with siril", icon="✅")
+            cmd.save("light_00001_GraXpert_pcc_green_deconvol")
+
 
             stretch = st.info("Auto stretch with siril...", icon="🕒")
             cmd.autostretch()
+            cmd.savejpg("/tmp/preview")
+
+            image.close()
+            image = Image.open("/tmp/preview.jpg")
+            # Show preview
+            image.thumbnail([1024, 1024])
+            imageLocation.image(image, caption='Image preview', use_column_width=True)
+            bar.progress(50)
+            deconvol.info("Apply deconvolution with siril", icon="✅")
             bar.progress(60)
             stretch.info("Auto stretch with siril", icon="✅")
             #cmd.savetif("/app/result")
@@ -157,6 +199,7 @@ class App:
             stars = st.info("Remove stars with starnet v1...", icon="🕒")
             cmd.starnet()
             bar.progress(70)
+            cmd.save("/tmp/starless")
             cmd.savetif("/tmp/starless",astro=True)
             cmd.savepng("/tmp/starless")
             stars.info("Remove stars with starnet v1", icon="✅")
@@ -164,8 +207,8 @@ class App:
             # 5th Step : starless denoising with GraXpert
             denoise = st.info("Denoise with GraXpert...", icon="🕒")
             os.chdir("/app/GraXpert-3.0.2")
-            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/starless_light_00001_GraXpert.fit -cli -cmd denoising")
-            cmd.load("starless_light_00001_GraXpert_GraXpert.fits")
+            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
+            cmd.load("starless_GraXpert.fits")
             bar.progress(80)
             denoise.info("Denoise with GraXpert...", icon="✅")
 
@@ -182,7 +225,7 @@ class App:
 
             # clean up
             os.remove("/tmp/light_00001_GraXpert.fits")
-            os.remove("/tmp/light_00001.fit")
+            os.remove("/tmp/light_00001.fits")
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
