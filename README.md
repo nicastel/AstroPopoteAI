@@ -9,7 +9,7 @@ Softwares used in the worfklow :
 
 - ASTAP (cli mode, plate solving more robust than Siril)
 - Siril (cli mode, photometric calibration, green noise removal, deconvolution)
-- GraXpert (cli mode, Gradient removal AI based)
+- GraXpert (cli mode, Gradient removal AI based, Denoising AI based)
 - Starnet v1 (cli mode, integrated in siril, Stars removal AI based)
 
 TBC not yet implemented :
