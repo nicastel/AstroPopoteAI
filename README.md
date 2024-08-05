@@ -21,11 +21,9 @@ TBC due to heavy resource usage issues :
 - SCUNet (DeNoising AI based)
 - AstroSleuth (DeBlurring AI based)
 
-Running via [colab](https://colab.research.google.com/drive/14sydwuVCKFCIw3xLt_x5kE730wQ2kyWN?usp=sharing)
+Running via [colab](https://colab.research.google.com/drive/14sydwuVCKFCIw3xLt_x5kE730wQ2kyWN?usp=sharing) : Recommanded way, free gpu accelerated hosting by google
 
-Recommanded way, free gpu accelerated hosting by google
-
-Running locally via docker
+Running locally via docker :
 
 Arm64 (raspberry pi, apple silicon mac) and x64 cpu supported
 to run install docker and run the commdands :
