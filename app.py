@@ -282,11 +282,6 @@ class App:
             submitted = st.form_submit_button("Cook!")
 
         if submitted and file is not None:
-            image = Image.open(file)
-
-            if image.width > WARNING_SIZE or image.height > WARNING_SIZE:
-                st.info("Woah, that image is quite large! You may have to wait a while and/or get unexpected errors!", icon="🕒")
-
             # Start the queue
             self.queue = FileQueue()
             queue_box = None

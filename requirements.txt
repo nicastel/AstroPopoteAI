@@ -15,7 +15,7 @@ ml_dtypes
 pykrige
 opencv-python-headless
 requests
-scikit-image == 0.21.0
+scikit-image == 0.21.0 # => issue with colab ?
 scipy
 tensorflow
 xisf
