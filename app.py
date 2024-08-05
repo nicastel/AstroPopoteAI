@@ -131,7 +131,7 @@ class App:
 
             # 2nd Step : gradient removal with graxpert
             gradient = st.info("Remove gradient with graXpert...", icon="🕒")
-            os.chdir("/content/GraXpert-3.0.2")
+            os.chdir("/content/AstroPopoteAI/GraXpert-3.0.2")
             run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fits -cli")
             bar.progress(30)
             gradient.info("Remove gradient with graXpert", icon="✅")
