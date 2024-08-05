@@ -102,7 +102,7 @@ class App:
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
             cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
             cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
-            cmd.set("core.starnet_exe=/app/run_starnet.sh")
+            cmd.set("core.starnet_exe=/content/AstroPopoteAI/run_starnet.sh")
 
             # convert to fit / debayer to start from a debayered fit file
             cmd.cd("/tmp/")
