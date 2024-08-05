@@ -26,7 +26,7 @@ Running via [colab](https://colab.research.google.com/drive/14sydwuVCKFCIw3xLt_x
 Running locally via docker :
 
 Arm64 (raspberry pi, apple silicon mac) and x64 cpu supported
-to run install docker and run the commdands :
+to run install docker and run the commands :
 
 docker build -t "astropopoteai:Dockerfile" .
 
