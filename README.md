@@ -18,6 +18,8 @@ TBC due to heavy resource usage issues :
 - SCUNet (DeNoising AI based)
 - AstroSleuth (DeBlurring AI based)
 
+For the gui and google colab integration I have borrowed a lot of code from the https://github.com/Aveygo/AstroSleuth prject. Many thanks to the author Aveygo.
+
 Based on docker
 Arm64 (raspberry pi, apple silicon mac) and x64 cpu supported
 to run install docker and run the commdands :
