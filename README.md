@@ -18,10 +18,15 @@ TBC due to heavy resource usage issues :
 - SCUNet (DeNoising AI based)
 - AstroSleuth (DeBlurring AI based)
 
-Based on docker
+Running via [colab](https://colab.research.google.com/drive/14sydwuVCKFCIw3xLt_x5kE730wQ2kyWN?usp=sharing)
+Recommanded way, free gpu accelerated hosting by google
+
+Running locally via docker
 Arm64 (raspberry pi, apple silicon mac) and x64 cpu supported
 to run install docker and run the commdands :
 
 docker build -t "astropopoteai:Dockerfile" .
 
 docker run -it docker.io/library/astropopoteai:Dockerfile
+
+Running locally on MacOS
