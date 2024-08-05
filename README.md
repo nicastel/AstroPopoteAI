@@ -31,5 +31,3 @@ to run install docker and run the commdands :
 docker build -t "astropopoteai:Dockerfile" .
 
 docker run -it docker.io/library/astropopoteai:Dockerfile
-
-Running locally on MacOS
