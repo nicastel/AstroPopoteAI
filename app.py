@@ -205,8 +205,8 @@ class App:
 
             # 5th Step : starless denoising with GraXpert
             denoise = st.info("Denoise with GraXpert...", icon="🕒")
-            os.chdir("/app/GraXpert-3.0.2")
-            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
+            os.chdir("/content/AstroPopoteAI/GraXpert-3.0.2")
+            run_shell_command("python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
             cmd.load("starless_GraXpert.fits")
             bar.progress(80)
             denoise.info("Denoise with GraXpert...", icon="✅")
@@ -219,8 +219,8 @@ class App:
             #darktable.info("Denoise and enhance colors and contrast of starless with darktable...", icon="✅")
 
             # save finals files
-            cmd.save("/app/result")
-            cmd.savejpg("/app/result")
+            cmd.save("/content/AstroPopoteAI/result")
+            cmd.savejpg("/content/AstroPopoteAI/result")
 
             # clean up
             os.remove("/tmp/light_00001_GraXpert.fits")
@@ -242,7 +242,7 @@ class App:
         # 5th Step : astro denoising with darktable on the starless
 
         # Run the process, yield progress
-        result = "/app/result.jpg"
+        result = "/content/AstroPopoteAI/result.jpg"
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
