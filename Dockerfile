@@ -1,7 +1,7 @@
 FROM ubuntu:23.10
 MAINTAINER Nicolas Castel <nic.castel@gmail.com>
 
-WORKDIR /app
+WORKDIR /content
 RUN apt-get update && apt-get install -y software-properties-common
 # Add PPA for latest siril release
 RUN add-apt-repository ppa:lock042/siril
@@ -57,9 +57,9 @@ RUN unzip starnet_weights2.zip
 # Darktable style folder creation
 RUN mkdir -p /root/.config/darktable/styles
 
-COPY . /app
+COPY . /content
 RUN chmod +x /app/run_starnet.sh
-COPY s3_secrets.py /app/GraXpert-3.0.2/graxpert/
+COPY s3_secrets.py /content/GraXpert-3.0.2/graxpert/
 COPY astro.dtstyle /root/.config/darktable/styles
 
 EXPOSE 7860
