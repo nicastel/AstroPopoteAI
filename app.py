@@ -2,7 +2,6 @@ import sys
 import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 from streamlit.runtime.uploaded_file_manager import UploadedFile
-from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 import subprocess
 
@@ -265,7 +264,7 @@ class App:
         # that we are still "in line"
 
         while self.running and self.queue.should_run():
-            if _get_websocket_headers() is None:
+            if st.context.headers is None:
                 self.close()
                 return
 
