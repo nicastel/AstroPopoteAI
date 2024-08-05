@@ -2,7 +2,6 @@ import sys
 import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 from streamlit.runtime.uploaded_file_manager import UploadedFile
-from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 import subprocess
 
@@ -103,7 +102,7 @@ class App:
             cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
             cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
             cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
-            cmd.set("core.starnet_exe=/app/run_starnet.sh")
+            cmd.set("core.starnet_exe=/content/AstroPopoteAI/run_starnet.sh")
 
             # convert to fit / debayer to start from a debayered fit file
             cmd.cd("/tmp/")
@@ -132,8 +131,8 @@ class App:
 
             # 2nd Step : gradient removal with graxpert
             gradient = st.info("Remove gradient with graXpert...", icon="🕒")
-            os.chdir("/app/GraXpert-3.0.2")
-            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/light_00001.fits -cli")
+            os.chdir("/content/AstroPopoteAI/GraXpert-3.0.2")
+            run_shell_command("python3 -m graxpert.main /tmp/light_00001.fits -cli")
             bar.progress(30)
             gradient.info("Remove gradient with graXpert", icon="✅")
 
@@ -206,8 +205,8 @@ class App:
 
             # 5th Step : starless denoising with GraXpert
             denoise = st.info("Denoise with GraXpert...", icon="🕒")
-            os.chdir("/app/GraXpert-3.0.2")
-            run_shell_command("/opt/venv/bin/python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
+            os.chdir("/content/AstroPopoteAI/GraXpert-3.0.2")
+            run_shell_command("python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
             cmd.load("starless_GraXpert.fits")
             bar.progress(80)
             denoise.info("Denoise with GraXpert...", icon="✅")
@@ -220,8 +219,8 @@ class App:
             #darktable.info("Denoise and enhance colors and contrast of starless with darktable...", icon="✅")
 
             # save finals files
-            cmd.save("/app/result")
-            cmd.savejpg("/app/result")
+            cmd.save("/content/AstroPopoteAI/result")
+            cmd.savejpg("/content/AstroPopoteAI/result")
 
             # clean up
             os.remove("/tmp/light_00001_GraXpert.fits")
@@ -243,7 +242,7 @@ class App:
         # 5th Step : astro denoising with darktable on the starless
 
         # Run the process, yield progress
-        result = "/app/result.jpg"
+        result = "/content/AstroPopoteAI/result.jpg"
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
@@ -265,7 +264,7 @@ class App:
         # that we are still "in line"
 
         while self.running and self.queue.should_run():
-            if _get_websocket_headers() is None:
+            if st.context.headers is None:
                 self.close()
                 return
 
@@ -282,11 +281,6 @@ class App:
             submitted = st.form_submit_button("Cook!")
 
         if submitted and file is not None:
-            image = Image.open(file)
-
-            if image.width > WARNING_SIZE or image.height > WARNING_SIZE:
-                st.info("Woah, that image is quite large! You may have to wait a while and/or get unexpected errors!", icon="🕒")
-
             # Start the queue
             self.queue = FileQueue()
             queue_box = None
