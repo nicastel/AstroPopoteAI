@@ -124,7 +124,7 @@ class App:
             platesolve = st.info("Plate solving with astap...", icon="🕒")
 
             # 1st Step : plate solving with astap
-            run_shell_command("/app/astap_cli -f /tmp/light_00001.fits -update")
+            run_shell_command("/content/AstroPopoteAI/astap_cli -f /tmp/light_00001.fits -update")
 
             bar.progress(20)
             platesolve.info("Plate solving with astap", icon="✅")
