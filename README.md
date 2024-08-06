@@ -23,7 +23,7 @@ TBC due to heavy resource usage issues :
 - SCUNet (DeNoising AI based)
 - AstroSleuth (DeBlurring AI based)
 
-Running via [colab]([https://colab.research.google.com/github/nicastel/AstroPopoteAI/blob/main/AstroPopoteAI.ipynb)) : Recommanded way, free gpu accelerated hosting by google
+Running via [colab](https://colab.research.google.com/github/nicastel/AstroPopoteAI/blob/main/AstroPopoteAI.ipynb) : Recommanded way, free gpu accelerated hosting by google
 
 Running locally via docker :
 
