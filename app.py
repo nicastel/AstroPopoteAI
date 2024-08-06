@@ -20,6 +20,10 @@ import logging
 import subprocess
 from io import StringIO
 
+@st.experimental_fragment
+def download_button_no_refresh(text, file_content, filename, type):
+    st.download_button(text, file_content, filename, type)
+
 def run_shell_command(command_line):
     command_line_args = shlex.split(command_line)
 
@@ -347,8 +351,10 @@ class App:
             # Show success / Download button
             encoding_prompt.empty()
             st.success('Done! Please use the downloads button to get the highest resolution', icon="🎉")
-            st.download_button("Download Starless Full Resolution", starless_b.getvalue(), "result_starless.jpg", "image/jpeg")
-            st.download_button("Download Starmask Full Resolution", starmask_b.getvalue(), "result_starmask.jpg", "image/jpeg")
+
+            download_button_no_refresh("Download Starless Full Resolution", starless_b.getvalue(), "result_starless.jpg", "image/jpeg")
+
+            download_button_no_refresh("Download Starmask Full Resolution", starmask_b.getvalue(), "result_starmask.jpg", "image/jpeg")
 
             # Show preview
             image_starless.thumbnail([1024, 1024])
