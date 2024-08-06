@@ -108,7 +108,6 @@ class App:
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
             os.remove(filename)
-            os.remove("/tmp/preview.jpg")
             cmd.load("light_00001.fits")
             cmd.autostretch()
             cmd.savejpg("/tmp/preview")
