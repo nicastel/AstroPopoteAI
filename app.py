@@ -227,6 +227,10 @@ class App:
                 os.remove(f)
             for f in glob.glob("/tmp/*.jpg"):
                 os.remove(f)
+            for f in glob.glob("/tmp/light*"):
+                os.remove(f)
+            for f in glob.glob("/tmp/starless*"):
+                os.remove(f)
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
