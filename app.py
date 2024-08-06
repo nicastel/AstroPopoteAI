@@ -225,6 +225,8 @@ class App:
             # clean up
             for f in glob.glob("/tmp/*.fits"):
                 os.remove(f)
+            for f in glob.glob("/tmp/*.jpg"):
+                os.remove(f)
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
