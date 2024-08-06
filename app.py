@@ -178,6 +178,8 @@ class App:
             cmd.Execute("rl")
             cmd.save("light_00001_GraXpert_pcc_green_deconvol")
 
+            bar.progress(50)
+            deconvol.info("Apply deconvolution with siril", icon="✅")
 
             stretch = st.info("Auto stretch with siril...", icon="🕒")
             cmd.autostretch()
@@ -188,9 +190,9 @@ class App:
             # Show preview
             image.thumbnail([1024, 1024])
             imageLocation.image(image, caption='Image preview', use_column_width=True)
-            bar.progress(50)
-            deconvol.info("Apply deconvolution with siril", icon="✅")
+
             bar.progress(60)
+
             stretch.info("Auto stretch with siril", icon="✅")
             #cmd.savetif("/app/result")
 
