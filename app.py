@@ -6,7 +6,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 import subprocess
 
 from PIL import Image
-import time, threading, io, warnings, argparse, json, os
+import time, threading, io, warnings, argparse, json, os, glob
 from os import listdir
 from importlib import import_module
 
@@ -108,6 +108,7 @@ class App:
             cmd.cd("/tmp/")
             cmd.convert("light",debayer=True)
             os.remove(filename)
+            os.remove("/tmp/preview.jpg")
             cmd.load("light_00001.fits")
             cmd.autostretch()
             cmd.savejpg("/tmp/preview")
@@ -223,8 +224,8 @@ class App:
             cmd.savejpg("/content/AstroPopoteAI/result")
 
             # clean up
-            os.remove("/tmp/light_00001_GraXpert.fits")
-            os.remove("/tmp/light_00001.fits")
+            for f in glob.glob("/tmp/*.fits"):
+                os.remove(f)
 
         except Exception as e :
             st.error("Siril error: " +  str(e), icon="❌")
