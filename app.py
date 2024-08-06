@@ -157,7 +157,7 @@ class App:
             cmd.load("light_00001_GraXpert.fits")
             photometric = st.info("Photometric calibration with siril...", icon="🕒")
             cmd.pcc()
-            cmd.rmgreen()
+            #cmd.rmgreen() => alter the color too much
             cmd.save("light_00001_GraXpert_pcc_green")
             cmd.autostretch()
             cmd.savejpg("/tmp/preview")
