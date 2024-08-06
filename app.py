@@ -98,10 +98,10 @@ class App:
             #3. Set preferences
 
             cmd.setext('fits')
-            cmd.set("core.catalogue_namedstars=/app/namedstars.dat")
-            cmd.set("core.catalogue_unnamedstars=/app/unnamedstars.dat")
-            cmd.set("core.catalogue_tycho2=/app/deepstars.dat")
-            cmd.set("core.catalogue_nomad=/app/USNO-NOMAD-1e8.dat")
+            cmd.set("core.catalogue_namedstars=/content/AstroPopoteAI/namedstars.dat")
+            cmd.set("core.catalogue_unnamedstars=/content/AstroPopoteAI/unnamedstars.dat")
+            cmd.set("core.catalogue_tycho2=/content/AstroPopoteAI/deepstars.dat")
+            cmd.set("core.catalogue_nomad=/content/AstroPopoteAI/USNO-NOMAD-1e8.dat")
             cmd.set("core.starnet_exe=/content/AstroPopoteAI/run_starnet.sh")
 
             # convert to fit / debayer to start from a debayered fit file
