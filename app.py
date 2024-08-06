@@ -221,8 +221,12 @@ class App:
             #darktable.info("Denoise and enhance colors and contrast of starless with darktable...", icon="✅")
 
             # save finals files
-            cmd.save("/content/AstroPopoteAI/result")
-            cmd.savejpg("/content/AstroPopoteAI/result")
+            cmd.save("/content/AstroPopoteAI/result_starless")
+            cmd.savejpg("/content/AstroPopoteAI/result_starless")
+
+            cmd.load("/tmp/starmask_light_00001_GraXpert_pcc_green.fits")
+            cmd.save("/content/AstroPopoteAI/result_starmask")
+            cmd.savejpg("/content/AstroPopoteAI/result_starmask")
 
             # clean up
             for f in glob.glob("/tmp/*.fits"):
@@ -250,7 +254,7 @@ class App:
         # 5th Step : astro denoising with darktable on the starless
 
         # Run the process, yield progress
-        result = "/content/AstroPopoteAI/result.jpg"
+        result = "/content/AstroPopoteAI/result"
         #for i in model.enhance_with_progress(image_rgb, args):
         #    if type(i) == float:
         #        bar.progress(i)
@@ -320,28 +324,35 @@ class App:
                 self.close()
                 return
 
-            image = Image.open(result)
-
             # Empty the info box
             self.info.empty()
 
             # Large images may take a while to encode
             encoding_prompt = st.info("Cooking complete, encoding...")
 
+            image_starless = Image.open(result+"_starless.jpg")
+
             # Convert to bytes
-            b = io.BytesIO()
-            file_type = file.name.split(".")[-1].upper()
-            file_type = "JPEG" if not file_type in ["JPEG", "PNG"] else file_type
-            image.save(b, format=file_type)
+            starless_b = io.BytesIO()
+            file_type = "JPEG"
+            image_starless.save(starless_b, format=file_type)
+
+            image_starmask = Image.open(result+"_starmask.jpg")
+
+            # Convert to bytes
+            starmask_b = io.BytesIO()
+            file_type = "JPEG"
+            image_starmask.save(starmask_b, format=file_type)
 
             # Show success / Download button
             encoding_prompt.empty()
-            st.success('Done! Please use the download button to get the highest resolution', icon="🎉")
-            st.download_button("Download Full Resolution", b.getvalue(), "result.jpg", "image/jpeg")
+            st.success('Done! Please use the downloads button to get the highest resolution', icon="🎉")
+            st.download_button("Download Starless Full Resolution", starless_b.getvalue(), "result_starless.jpg", "image/jpeg")
+            st.download_button("Download Starmask Full Resolution", starmask_b.getvalue(), "result_starmask.jpg", "image/jpeg")
 
             # Show preview
-            image.thumbnail([1024, 1024])
-            st.image(image, caption='Image preview', use_column_width=True)
+            image_starless.thumbnail([1024, 1024])
+            st.image(image_starless, caption='Image preview', use_column_width=True)
 
             # Leave the queue for other clients to start upscaling
             self.close()
