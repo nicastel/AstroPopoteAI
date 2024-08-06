@@ -62,4 +62,4 @@ COPY s3_secrets.py /content/AstroPopoteAI/GraXpert-3.0.2/graxpert/
 COPY astro.dtstyle /root/.config/darktable/styles
 
 EXPOSE 7860
-CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
+CMD ["streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
