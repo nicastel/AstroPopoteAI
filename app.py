@@ -20,7 +20,7 @@ import logging
 import subprocess
 from io import StringIO
 
-@st.experimental_fragment
+@st.fragment
 def download_button_no_refresh(text, file_content, filename, type):
     st.download_button(text, file_content, filename, type)
 
