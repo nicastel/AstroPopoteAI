@@ -14,9 +14,9 @@ RUN \
 
 # Install python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --break-system-packages
 ADD https://gitlab.com/free-astro/pysiril/uploads/8224707c29669f255ad43da3b93bc5ec/pysiril-0.0.15-py3-none-any.whl pysiril-0.0.15-py3-none-any.whl
-RUN pip install pysiril-0.0.15-py3-none-any.whl
+RUN pip install pysiril-0.0.15-py3-none-any.whl --break-system-packages
 
 # Astap cli and star database for plate solving
 ADD https://github.com/nicastel/AstroPopoteAI/releases/download/astap/astap_command-line_version_Linux_aarch64.zip astap_command-line_version_Linux_aarch64.zip
