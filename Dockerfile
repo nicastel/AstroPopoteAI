@@ -10,14 +10,13 @@ RUN add-apt-repository ppa:ubuntuhandbook1/darktable
 RUN \
     apt-get update && \
     apt-get -y install \
-    python3-pip python3-venv wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk darktable
+    python3-pip wget siril unzip xz-utils pkg-config libhdf5-dev python3-tk darktable
 
 # Install python dependencies
-RUN python3 -m venv /opt/venv
 COPY requirements.txt .
-RUN /opt/venv/bin/pip install -r requirements.txt
+RUN pip install -r requirements.txt
 ADD https://gitlab.com/free-astro/pysiril/uploads/8224707c29669f255ad43da3b93bc5ec/pysiril-0.0.15-py3-none-any.whl pysiril-0.0.15-py3-none-any.whl
-RUN /opt/venv/bin/pip install pysiril-0.0.15-py3-none-any.whl
+RUN pip install pysiril-0.0.15-py3-none-any.whl
 
 # Astap cli and star database for plate solving
 ADD https://github.com/nicastel/AstroPopoteAI/releases/download/astap/astap_command-line_version_Linux_aarch64.zip astap_command-line_version_Linux_aarch64.zip
@@ -61,8 +60,6 @@ COPY . /content/AstroPopoteAI
 RUN chmod +x /content/AstroPopoteAI/run_starnet.sh
 COPY s3_secrets.py /content/AstroPopoteAI/GraXpert-3.0.2/graxpert/
 COPY astro.dtstyle /root/.config/darktable/styles
-
-RUN alias python3=/opt/venv/bin/python3
 
 EXPOSE 7860
 CMD ["/opt/venv/bin/streamlit", "run", "app.py", "--server.port=7860", "--browser.gatherUsageStats", "false"]
