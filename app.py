@@ -215,15 +215,15 @@ class App:
             bar.progress(40)
             photometric.info("Photometric calibration with siril", icon="✅")
 
-            deconvol = st.info("Apply deconvolution with siril...", icon="🕒")
-            cmd.load("light_00001_GraXpert_pcc_green.fits")
-            cmd.unclipstars()
-            cmd.Execute("makepsf stars")
-            cmd.Execute("rl")
-            cmd.save("light_00001_GraXpert_pcc_green_deconvol")
+            #deconvol = st.info("Apply deconvolution with siril...", icon="🕒")
+            #cmd.load("light_00001_GraXpert_pcc_green.fits")
+            #cmd.unclipstars()
+            #cmd.Execute("makepsf stars")
+            #cmd.Execute("rl")
+            #cmd.save("light_00001_GraXpert_pcc_green_deconvol")
 
-            bar.progress(50)
-            deconvol.info("Apply deconvolution with siril", icon="✅")
+            #bar.progress(50)
+            #deconvol.info("Apply deconvolution with siril", icon="✅")
 
             stretch = st.info("Auto stretch with siril...", icon="🕒")
             cmd.autostretch()
@@ -302,9 +302,10 @@ class App:
 
             # 7th Step : final image recomposition with Siril
             # Combine the starless and starmask images using pixel math.
-            cmd.pm("$result_starmask$ + 0.6* $result_starless$")
+            cmd.cd("/content/AstroPopoteAI/")
+            cmd.pm("$result_starmask$ + 0.6 * $result_starless$")
             cmd.clahe(2.0,8)
-            cmd.satu(1,0)
+            cmd.satu(1)
             cmd.save("/content/AstroPopoteAI/result_final")
             cmd.savejpg("/content/AstroPopoteAI/result_final")
 

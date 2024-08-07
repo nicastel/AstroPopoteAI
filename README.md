@@ -8,7 +8,7 @@ For the gui and google colab integration I have borrowed a lot of code from the 
 Softwares used in the worfklow :
 
 - ASTAP (cli mode, plate solving more robust than Siril)
-- Siril (cli mode, photometric calibration, deconvolution, contrast and colors enhancement)
+- Siril (cli mode, photometric calibration, contrast and colors enhancement)
 - GraXpert (cli mode, Gradient removal AI based)
 - Starnet v1 (cli mode, integrated in siril, Stars removal AI based)
 - SCUNet (via the spandrel library, DeNoising AI based)
