@@ -32,3 +32,4 @@ matplotlib
 # SCUNet and AstroSleuth
 spandrel
 torch
+torch-directml

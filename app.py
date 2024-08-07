@@ -20,6 +20,10 @@ import logging
 import subprocess
 from io import StringIO
 
+from spandrel import ImageModelDescriptor, ModelLoader
+import torch, cv2
+import numpy as np
+
 @st.fragment
 def download_button_no_refresh(text, file_content, filename, type):
     st.download_button(text, file_content, filename, type)
@@ -51,6 +55,42 @@ def run_shell_command(command_line):
         logging.info('Subprocess finished')
 
     return True
+
+# suppported for SCUNet : Nvidia GPU / Apple MPS / DirectML on Windows / CPU
+def get_device() -> torch.device:
+    if os.name == 'nt':
+        import torch_directml
+        return torch_directml.default_device()
+    else:
+        return torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
+
+def image_to_tensor(img: np.ndarray) -> torch.Tensor:
+    img = img.astype(np.float32) / 255.0
+    if img.ndim == 2:
+        img = np.expand_dims(img, axis=2)
+    if img.shape[2] == 1:
+        pass
+    else:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = np.transpose(img, (2, 0, 1))
+    tensor = torch.from_numpy(img)
+    return tensor.unsqueeze(0)
+
+
+def tensor_to_image(tensor: torch.Tensor) -> np.ndarray:
+    image = tensor.cpu().squeeze().numpy()
+    image = np.transpose(image, (1, 2, 0))
+    image = np.clip((image * 255.0).round(), 0, 255)
+    image = image.astype(np.uint8)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    return image
+
+def image_inference_tensor(
+    model: ImageModelDescriptor, tensor: torch.Tensor
+) -> torch.Tensor:
+    model.eval()
+    with torch.no_grad():
+        return model(tensor)
 
 # Set image warning and max sizes
 WARNING_SIZE = 4096
@@ -217,6 +257,31 @@ class App:
             bar.progress(80)
             denoise.info("Denoise with GraXpert...", icon="✅")
 
+            # alternative Denoising via SCUNet
+            # initialize the main device : GPU, TPU, NPU or CPU
+            denoise = st.info("Denoise with SCUNet...", icon="🕒")
+            device = get_device()
+
+            # load a model from disk
+            model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/scunet_color_real_psnr.pth")
+            # make sure it's an image to image model
+            assert isinstance(model, ImageModelDescriptor)
+            # send it to the GPU and put it in inference mode
+            model.to(device).eval()
+
+            # read image out send it to the GPU
+            imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_COLOR)
+            tensorin = image_to_tensor(imagecv2in).to(device)
+
+            # process the image and write it to the disk
+            imagecv2out = tensor_to_image(image_inference_tensor(model, tensorin))
+            cv2.imwrite(str("/tmp/starless_denoised.tif"), imagecv2out)
+
+            cmd.load("starless_denoised.tif")
+
+            bar.progress(90)
+            denoise.info("Denoise with SCUNet...", icon="✅")
+
             # 6th Step : colors/contrast enhancements with darktable
             #darktable = st.info("Denoise and enhance colors and contrast of starless with darktable...", icon="🕒")
             #run_shell_command("darktable-cli /tmp/starless.png /tmp/out.tif --style astro --verbose --core --configdir /root/.config/darktable/")
@@ -250,25 +315,8 @@ class App:
         siril_app.Close()
         del siril_app
 
-        # Set the bar to 50
-        bar.progress(50)
-
-        # 4th Step : star removal with Starnet
-
-        # 5th Step : astro denoising with darktable on the starless
-
         # Run the process, yield progress
         result = "/content/AstroPopoteAI/result"
-        #for i in model.enhance_with_progress(image_rgb, args):
-        #    if type(i) == float:
-        #        bar.progress(i)
-        #    else:
-        #        result = i
-        #        break
-
-            # Early exit if we are no longer running (user closed the page)
-            #if not self.running:
-            #    break
 
         # Clear the bar
         bar.empty()
