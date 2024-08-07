@@ -407,17 +407,26 @@ class App:
             file_type = "JPEG"
             image_starmask.save(starmask_b, format=file_type)
 
+            image_final = Image.open(result+"_final.jpg")
+
+            # Convert to bytes
+            final_b = io.BytesIO()
+            file_type = "JPEG"
+            image_final.save(final_b, format=file_type)
+
             # Show success / Download button
             encoding_prompt.empty()
-            st.success('Done! Please use the downloads button to get the highest resolution', icon="🎉")
+            st.success('Done! Please use the download buttons to get the highest resolution', icon="🎉")
 
             download_button_no_refresh("Download Starless Full Resolution", starless_b.getvalue(), "result_starless.jpg", "image/jpeg")
 
             download_button_no_refresh("Download Starmask Full Resolution", starmask_b.getvalue(), "result_starmask.jpg", "image/jpeg")
 
+            download_button_no_refresh("Download Final Full Resolution", final_b.getvalue(), "result_final.jpg", "image/jpeg")
+
             # Show preview
-            image_starless.thumbnail([1024, 1024])
-            st.image(image_starless, caption='Image preview', use_column_width=True)
+            image_final.thumbnail([1024, 1024])
+            st.image(image_final, caption='Image preview', use_column_width=True)
 
             # Leave the queue for other clients to start upscaling
             self.close()
