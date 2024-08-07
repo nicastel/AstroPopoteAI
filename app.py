@@ -201,8 +201,6 @@ class App:
             cmd.load("light_00001_GraXpert.fits")
             photometric = st.info("Photometric calibration with siril...", icon="🕒")
             cmd.pcc()
-            #cmd.rmgreen() => alter the color too much
-            cmd.save("light_00001_GraXpert_pcc_green")
             cmd.autostretch()
             cmd.savejpg("/tmp/preview")
 
@@ -294,7 +292,7 @@ class App:
             cmd.save("/content/AstroPopoteAI/result_starless")
             cmd.savejpg("/content/AstroPopoteAI/result_starless")
 
-            cmd.load("/tmp/starmask_light_00001_GraXpert_pcc_green.fits")
+            cmd.load("/tmp/starmask_light_00001_GraXpert.fits")
             cmd.gauss(1.2)
             cmd.unsharp(2,1)
             cmd.save("/content/AstroPopoteAI/result_starmask")
