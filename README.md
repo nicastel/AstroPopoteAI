@@ -8,20 +8,15 @@ For the gui and google colab integration I have borrowed a lot of code from the 
 Softwares used in the worfklow :
 
 - ASTAP (cli mode, plate solving more robust than Siril)
-- Siril (cli mode, photometric calibration, green noise removal, deconvolution)
-- GraXpert (cli mode, Gradient removal AI based, Denoising AI based)
+- Siril (cli mode, photometric calibration, deconvolution, contrast and colors enhancement)
+- GraXpert (cli mode, Gradient removal AI based)
 - Starnet v1 (cli mode, integrated in siril, Stars removal AI based)
+- SCUNet (via the spandrel library, DeNoising AI based)
 
 TBC not yet implemented :
 
-- Darktable (cli mode, astro denoising, contrast and colors enhencement)
-- GIMP (cli mode)
-- GMIC (integrated in GIMP)
-
-TBC due to heavy resource usage issues :
-
-- SCUNet (DeNoising AI based)
-- AstroSleuth (DeBlurring AI based)
+- Darktable (cli mode, astro denoising, contrast and colors enhancement)
+- AstroSleuth (DeBlurring/Upscale AI based)
 
 Running via [colab](https://colab.research.google.com/github/nicastel/AstroPopoteAI/blob/main/AstroPopoteAI.ipynb) : Recommanded way, free gpu accelerated hosting by google
 
