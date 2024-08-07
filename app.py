@@ -250,15 +250,16 @@ class App:
             stars.info("Remove stars with starnet v1", icon="✅")
 
             # 5th Step : starless denoising with GraXpert
-            denoise = st.info("Denoise with GraXpert...", icon="🕒")
-            os.chdir("/content/AstroPopoteAI/GraXpert-3.0.2")
-            run_shell_command("python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
-            cmd.load("starless_GraXpert.fits")
-            bar.progress(80)
-            denoise.info("Denoise with GraXpert...", icon="✅")
+            # commented => the result are muchbetter with SCUNet without big performance penalty on colab
+            #denoise = st.info("Denoise with GraXpert...", icon="🕒")
+            #os.chdir("/content/AstroPopoteAI/GraXpert-3.0.2")
+            #run_shell_command("python3 -m graxpert.main /tmp/starless.fits -cli -cmd denoising")
+            #cmd.load("starless_GraXpert.fits")
+            #bar.progress(80)
+            #denoise.info("Denoise with GraXpert...", icon="✅")
 
-            # alternative Denoising via SCUNet
-            # initialize the main device : GPU, TPU, NPU or CPU
+            # 5th Step : Denoising via SCUNet
+            # initialize the main device : GPU, or CPU
             denoise = st.info("Denoise with SCUNet...", icon="🕒")
             device = get_device()
 
@@ -279,7 +280,7 @@ class App:
 
             cmd.load("starless_denoised.tif")
 
-            bar.progress(90)
+            bar.progress(80)
             denoise.info("Denoise with SCUNet...", icon="✅")
 
             # 6th Step : colors/contrast enhancements with darktable
@@ -294,8 +295,18 @@ class App:
             cmd.savejpg("/content/AstroPopoteAI/result_starless")
 
             cmd.load("/tmp/starmask_light_00001_GraXpert_pcc_green.fits")
+            cmd.gauss(1.2)
+            cmd.unsharp(2,1)
             cmd.save("/content/AstroPopoteAI/result_starmask")
             cmd.savejpg("/content/AstroPopoteAI/result_starmask")
+
+            # 7th Step : final image recomposition with Siril
+            # Combine the starless and starmask images using pixel math.
+            cmd.pm("$result_starmask$ + 0.6* $result_starless$")
+            cmd.clahe(2.0,8)
+            cmd.satu(1,0)
+            cmd.save("/content/AstroPopoteAI/result_final")
+            cmd.savejpg("/content/AstroPopoteAI/result_final")
 
             # clean up
             for f in glob.glob("/tmp/*.fits"):

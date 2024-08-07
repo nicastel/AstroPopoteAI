@@ -53,6 +53,12 @@ RUN unzip GraXpert-3.0.2.zip
 ADD https://github.com/nicastel/starnet/releases/download/starnetv1/starnet_weights2.zip starnet_weights2.zip
 RUN unzip starnet_weights2.zip
 
+# SCUNet
+ADD https://github.com/cszn/KAIR/releases/download/v1.0/scunet_color_real_psnr.pth scunet_color_real_psnr.pth
+
+# AstroSleuth
+ADD https://github.com/Aveygo/AstroSleuth/releases/download/v1/AstroSleuthV1.pth AstroSleuthV1.pth
+
 # Darktable style folder creation
 RUN mkdir -p /root/.config/darktable/styles
 
