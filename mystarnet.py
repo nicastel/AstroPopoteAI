@@ -15,6 +15,7 @@ if len(sys.argv) > 1:
         sys.stdout.flush()
     else:
         # -i input.tif -o starless_imput.tif
+        print("Starnet TensorFlow 2 - Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
         starnet = StarNet(mode = 'RGB', window_size = 512, stride = 128)
         starnet.load_model('./weights', './history')
         print("Weights Loaded!")
