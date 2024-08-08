@@ -5,6 +5,7 @@ tf.get_logger().setLevel(logging.ERROR)
 from starnet_v1_TF2 import StarNet
 import tifffile as tiff
 import sys
+from numba import cuda
 
 if len(sys.argv) > 1:
     if sys.argv[1] == '--version':
@@ -22,4 +23,7 @@ if len(sys.argv) > 1:
         in_name = sys.argv[2]
         out_name = sys.argv[4]
         starnet.transform(in_name, out_name)
+        if cuda.is_available:
+            device = cuda.get_current_device()
+            device.reset()
         print("100% finished")
