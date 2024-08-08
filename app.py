@@ -265,8 +265,6 @@ class App:
             model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/scunet_color_real_psnr.pth")
             # make sure it's an image to image model
             assert isinstance(model, ImageModelDescriptor)
-            # send it to the GPU and put it in inference mode
-            model.to(device).eval()
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_COLOR)
@@ -317,8 +315,6 @@ class App:
             model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/AstroSleuthV1.pth")
             # make sure it's an image to image model
             assert isinstance(model, ImageModelDescriptor)
-            # send it to the GPU and put it in inference mode
-            model.to(device).eval()
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/content/AstroPopoteAI/result_final.tif"), cv2.IMREAD_COLOR)
