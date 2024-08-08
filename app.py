@@ -88,7 +88,7 @@ def tensor_to_image(tensor: torch.Tensor) -> np.ndarray:
 def image_inference_tensor(
     model: ImageModelDescriptor, tensor: torch.Tensor
 ) -> torch.Tensor:
-    model.eval()
+    model.to(get_device()).eval()
     with torch.no_grad():
         return model(tensor)
 
@@ -263,8 +263,6 @@ class App:
 
             # load a model from disk
             model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/scunet_color_real_psnr.pth")
-            # make sure it's an image to image model
-            assert isinstance(model, ImageModelDescriptor)
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_COLOR)
@@ -313,8 +311,6 @@ class App:
 
             # load a model from disk
             model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/AstroSleuthV1.pth")
-            # make sure it's an image to image model
-            assert isinstance(model, ImageModelDescriptor)
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/content/AstroPopoteAI/result_final.tif"), cv2.IMREAD_COLOR)
