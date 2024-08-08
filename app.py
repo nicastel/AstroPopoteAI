@@ -88,8 +88,8 @@ def tensor_to_image(tensor: torch.Tensor) -> np.ndarray:
 def image_inference_tensor(
     model: ImageModelDescriptor, tensor: torch.Tensor
 ) -> torch.Tensor:
-    model.to(get_device()).eval()
     with torch.no_grad():
+        model.eval()
         return model(tensor)
 
 # Set image warning and max sizes
@@ -266,7 +266,7 @@ class App:
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_COLOR)
-            tensorin = image_to_tensor(imagecv2in).to(device)
+            tensorin = image_to_tensor(imagecv2in)
 
             # process the image and write it to the disk
             imagecv2out = tensor_to_image(image_inference_tensor(model, tensorin))
