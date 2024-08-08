@@ -293,19 +293,47 @@ class App:
             cmd.savejpg("/content/AstroPopoteAI/result_starless")
 
             cmd.load("/tmp/starmask_light_00001_GraXpert.fits")
-            cmd.gauss(1.2)
-            cmd.unsharp(2,1)
             cmd.save("/content/AstroPopoteAI/result_starmask")
             cmd.savejpg("/content/AstroPopoteAI/result_starmask")
+            cmd.gauss(1.2)
+            cmd.unsharp(2,1)
+            cmd.save("/content/AstroPopoteAI/result_starmask_processed")
 
             # 7th Step : final image recomposition with Siril
             # Combine the starless and starmask images using pixel math.
             cmd.cd("/content/AstroPopoteAI/")
-            cmd.pm("$result_starmask$ + 0.6 * $result_starless$")
+            cmd.pm("$result_starmask_processed$ + 0.6 * $result_starless$")
             cmd.clahe(2.0,8)
             cmd.satu(1)
             cmd.save("/content/AstroPopoteAI/result_final")
             cmd.savejpg("/content/AstroPopoteAI/result_final")
+            cmd.savetif("/content/AstroPopoteAI/result_final", astro=True)
+
+            # 8th Step : upscale final result via AstroSleuth
+            denoise = st.info("Deblur and upscale with AstroSleuth...", icon="🕒")
+            device = get_device()
+
+            # load a model from disk
+            model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/AstroSleuthV1.pth")
+            # make sure it's an image to image model
+            assert isinstance(model, ImageModelDescriptor)
+            # send it to the GPU and put it in inference mode
+            model.to(device).eval()
+
+            # read image out send it to the GPU
+            imagecv2in = cv2.imread(str("/content/AstroPopoteAI/result_final.tif"), cv2.IMREAD_COLOR)
+            tensorin = image_to_tensor(imagecv2in).to(device)
+
+            # process the image and write it to the disk
+            imagecv2out = tensor_to_image(image_inference_tensor(model, tensorin))
+            cv2.imwrite(str("/content/AstroPopoteAI/result_final_upscaled.tif"), imagecv2out)
+
+            cmd.load("/content/AstroPopoteAI/result_final_upscaled.tif")
+            cmd.save("/content/AstroPopoteAI/result_final_upscaled")
+            cmd.savejpg("/content/AstroPopoteAI/result_final_upscaled")
+
+            bar.progress(90)
+            denoise.info("Deblur and upscale with AstroSleuth...", icon="✅")
 
             # clean up
             for f in glob.glob("/tmp/*.fits"):
@@ -413,6 +441,13 @@ class App:
             file_type = "JPEG"
             image_final.save(final_b, format=file_type)
 
+            image_upscaled = Image.open(result+"_final_upscaled.jpg")
+
+            # Convert to bytes
+            upscaled_b = io.BytesIO()
+            file_type = "JPEG"
+            image_upscaled.save(upscaled_b, format=file_type)
+
             # Show success / Download button
             encoding_prompt.empty()
             st.success('Done! Please use the download buttons to get the highest resolution', icon="🎉")
@@ -423,9 +458,11 @@ class App:
 
             download_button_no_refresh("Download Final Full Resolution", final_b.getvalue(), "result_final.jpg", "image/jpeg")
 
+            download_button_no_refresh("Download Upscaled Full Resolution", upscaled_b.getvalue(), "result_final_upscaled.jpg", "image/jpeg")
+
             # Show preview
-            image_final.thumbnail([1024, 1024])
-            st.image(image_final, caption='Image preview', use_column_width=True)
+            image_upscaled.thumbnail([1024, 1024])
+            st.image(image_upscaled, caption='Image preview', use_column_width=True)
 
             # Leave the queue for other clients to start upscaling
             self.close()
