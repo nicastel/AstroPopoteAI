@@ -21,7 +21,7 @@ import subprocess
 from io import StringIO
 
 from spandrel import ImageModelDescriptor, ModelLoader
-import torch, cv2
+import torch, cv2, math
 import numpy as np
 
 @st.fragment
@@ -89,8 +89,64 @@ def image_inference_tensor(
     model: ImageModelDescriptor, tensor: torch.Tensor
 ) -> torch.Tensor:
     with torch.no_grad():
-        model.eval()
         return model(tensor)
+
+def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size, yield_extra_details=False):
+        """
+        Process data [height, width, channel] into tiles of size [tile_size, tile_size, channel],
+        feed them one by one into the model, then yield the resulting output tiles.
+        """
+
+        tile_pad=16
+
+        # [height, width, channel] -> [1, channel, height, width]
+        data = np.rollaxis(data, 2, 0)
+        data = np.expand_dims(data, axis=0)
+        data = np.clip(data, 0, 1024)
+
+        batch, channel, height, width = data.shape
+
+        tiles_x = width // tile_size
+        tiles_y = height // tile_size
+
+        for i in range(tiles_y * tiles_x):
+            x = i % tiles_y
+            y = math.floor(i/tiles_y)
+
+            input_start_x = y * tile_size
+            input_start_y = x * tile_size
+
+            input_end_x = min(input_start_x + tile_size, width)
+            input_end_y = min(input_start_y + tile_size, height)
+
+            input_start_x_pad = max(input_start_x - tile_pad, 0)
+            input_end_x_pad = min(input_end_x + tile_pad, width)
+            input_start_y_pad = max(input_start_y - tile_pad, 0)
+            input_end_y_pad = min(input_end_y + tile_pad, height)
+
+            input_tile_width = input_end_x - input_start_x
+            input_tile_height = input_end_y - input_start_y
+
+            input_tile = data[:, :, input_start_y_pad:input_end_y_pad, input_start_x_pad:input_end_x_pad].astype(np.float32) / 255
+
+            output_tile = image_inference_tensor(model,torch.from_numpy(input_tile))
+            progress = (i+1) / (tiles_y * tiles_x)
+
+            output_start_x_tile = (input_start_x - input_start_x_pad) * scale
+            output_end_x_tile = output_start_x_tile + input_tile_width * scale
+            output_start_y_tile = (input_start_y - input_start_y_pad) * scale
+            output_end_y_tile = output_start_y_tile + input_tile_height * scale
+
+            output_tile = output_tile[:, :, output_start_y_tile:output_end_y_tile, output_start_x_tile:output_end_x_tile]
+
+            output_tile = (np.rollaxis(output_tile.cpu().detach().numpy(), 1, 4).squeeze(0).clip(0,1) * 255).astype(np.uint8)
+
+            if yield_extra_details:
+                yield (output_tile, input_start_x, input_start_y, input_tile_width, input_tile_height, progress)
+            else:
+                yield output_tile
+
+        yield None
 
 # Set image warning and max sizes
 WARNING_SIZE = 4096
@@ -263,13 +319,36 @@ class App:
 
             # load a model from disk
             model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/scunet_color_real_psnr.pth")
+            # make sure it's an image to image model
+            assert isinstance(model, ImageModelDescriptor)
+
+            model.eval()
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_COLOR)
-            tensorin = image_to_tensor(imagecv2in)
+            original_height, original_width, channels = imagecv2in.shape
 
-            # process the image and write it to the disk
-            imagecv2out = tensor_to_image(image_inference_tensor(model, tensorin))
+            tile_size = 1024
+            scale = 1
+
+            # Because tiles may not fit perfectly, we resize to the closest multiple of tile_size
+            imgcv2resized = cv2.resize(imagecv2in,(max(original_width//tile_size * tile_size, tile_size),max(original_height//tile_size * tile_size, tile_size)),interpolation=cv2.INTER_CUBIC)
+
+            # Allocate an image to save the tiles
+            imgresult = cv2.copyMakeBorder(imgcv2resized,0,0,0,0,cv2.BORDER_REPLICATE)
+
+            for i, tile in enumerate(tile_process(model, imgcv2resized, scale, tile_size, yield_extra_details=True)):
+
+                if tile is None:
+                    break
+
+                tile_data, x, y, w, h, p = tile
+                imgresult[x*scale:x*scale+tile_size,y*scale:y*scale+tile_size] = tile_data
+
+            # Resize back to the expected size
+            imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
+
+            # write the image to the disk
             cv2.imwrite(str("/tmp/starless_denoised.tif"), imagecv2out)
 
             cmd.load("starless_denoised.tif")
@@ -311,13 +390,36 @@ class App:
 
             # load a model from disk
             model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/AstroSleuthV1.pth")
+            # make sure it's an image to image model
+            assert isinstance(model, ImageModelDescriptor)
+
+            model.eval()
 
             # read image out send it to the GPU
             imagecv2in = cv2.imread(str("/content/AstroPopoteAI/result_final.tif"), cv2.IMREAD_COLOR)
-            tensorin = image_to_tensor(imagecv2in).to(device)
+            original_height, original_width, channels = imagecv2in.shape
 
-            # process the image and write it to the disk
-            imagecv2out = tensor_to_image(image_inference_tensor(model, tensorin))
+            tile_size = 256
+            scale = 2
+
+            # Because tiles may not fit perfectly, we resize to the closest multiple of tile_size
+            imgcv2resized = cv2.resize(imagecv2in,(max(original_width//tile_size * tile_size, tile_size),max(original_height//tile_size * tile_size, tile_size)),interpolation=cv2.INTER_CUBIC)
+
+            # Allocate an image to save the tiles
+            imgresult = cv2.copyMakeBorder(imgcv2resized,0,0,0,0,cv2.BORDER_REPLICATE)
+
+            for i, tile in enumerate(tile_process(model, imgcv2resized, scale, tile_size, yield_extra_details=True)):
+
+                if tile is None:
+                    break
+
+                tile_data, x, y, w, h, p = tile
+                imgresult[x*scale:x*scale+tile_size,y*scale:y*scale+tile_size] = tile_data
+
+            # Resize back to the expected size
+            imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
+
+            # write the image to the disk
             cv2.imwrite(str("/content/AstroPopoteAI/result_final_upscaled.tif"), imagecv2out)
 
             cmd.load("/content/AstroPopoteAI/result_final_upscaled.tif")
