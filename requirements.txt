@@ -28,6 +28,7 @@ tifffile
 #numpy
 tf-keras
 matplotlib
+numba
 
 # SCUNet and AstroSleuth
 spandrel
