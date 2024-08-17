@@ -113,8 +113,8 @@ def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size
             x = i % tiles_y
             y = math.floor(i/tiles_y)
 
-            input_start_x = y * tile_size
-            input_start_y = x * tile_size
+            input_start_x = x * tile_size
+            input_start_y = y * tile_size
 
             input_end_x = min(input_start_x + tile_size, width)
             input_end_y = min(input_start_y + tile_size, height)
@@ -406,7 +406,7 @@ class App:
             imgcv2resized = cv2.resize(imagecv2in,(max(original_width//tile_size * tile_size, tile_size),max(original_height//tile_size * tile_size, tile_size)),interpolation=cv2.INTER_CUBIC)
 
             # Allocate an image to save the tiles
-            imgresult = cv2.resize(imgcv2resized,(0, 0),fx=scale,fy=scale,interpolation=cv2.INTER_CUBIC)
+            imgresult = cv2.resize(imgcv2resized,None,fx=scale,fy=scale,interpolation=cv2.INTER_CUBIC)
 
             for i, tile in enumerate(tile_process(model, imgcv2resized, scale, tile_size, yield_extra_details=True)):
 
