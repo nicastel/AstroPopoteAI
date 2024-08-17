@@ -102,7 +102,7 @@ def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size
         # [height, width, channel] -> [1, channel, height, width]
         data = np.rollaxis(data, 2, 0)
         data = np.expand_dims(data, axis=0)
-        data = np.clip(data, 0, 1024)
+        data = np.clip(data, 0, 255)
 
         batch, channel, height, width = data.shape
 
