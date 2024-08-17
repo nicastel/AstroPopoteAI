@@ -414,7 +414,12 @@ class App:
                     break
 
                 tile_data, x, y, w, h, p = tile
-                imgresult[x*scale:x*scale+tile_size*scale,y*scale:y*scale+tile_size*scale] = tile_data
+                print("Progress : "+str(p))
+                print("x : "+str(x))
+                print("y : "+str(y))
+                print("w : "+str(w))
+                print("h : "+str(h))
+                imgresult[x*scale:x*scale+w*scale,y*scale:y*scale+h*scale] = tile_data
 
             # Resize back to the expected size
             imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
@@ -440,7 +445,7 @@ class App:
                 os.remove(f)
 
         except Exception as e :
-            st.error("Siril error: " +  str(e), icon="❌")
+            st.error("Processing error: " +  str(e), icon="❌")
             return None
 
         #6. Closing Siril and deleting Siril instance
