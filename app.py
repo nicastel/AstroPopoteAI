@@ -420,7 +420,8 @@ class App:
                 print("y : "+str(y))
                 print("w : "+str(w))
                 print("h : "+str(h))
-                imgresult[x*scale:x*scale+w*scale,y*scale:y*scale+h*scale] = tile_data
+                if w != 0 and h != 0 :
+                    imgresult[x*scale:x*scale+w*scale,y*scale:y*scale+h*scale] = tile_data
 
             # Resize back to the expected size
             imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
