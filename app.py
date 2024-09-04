@@ -343,7 +343,8 @@ class App:
                     break
 
                 tile_data, x, y, w, h, p = tile
-                imgresult[x*scale:x*scale+tile_size,y*scale:y*scale+tile_size] = tile_data
+                if w != 0 and h != 0 :
+                    imgresult[x*scale:x*scale+tile_size,y*scale:y*scale+tile_size] = tile_data
 
             # Resize back to the expected size
             imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
