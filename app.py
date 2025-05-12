@@ -60,26 +60,15 @@ def run_shell_command(command_line):
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
-def image_to_tensor(img: np.ndarray) -> torch.Tensor:
-    img = img.astype(np.float32) / 255.0
-    if img.ndim == 2:
-        img = np.expand_dims(img, axis=2)
-    if img.shape[2] == 1:
-        pass
-    else:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = np.transpose(img, (2, 0, 1))
+
+def image_to_tensor(device: torch.device, img: np.ndarray) -> torch.Tensor:
     tensor = torch.from_numpy(img)
-    return tensor.unsqueeze(0)
+    return tensor.to(device)
+
 
 
 def tensor_to_image(tensor: torch.Tensor) -> np.ndarray:
-    image = tensor.cpu().squeeze().numpy()
-    image = np.transpose(image, (1, 2, 0))
-    image = np.clip((image * 255.0).round(), 0, 255)
-    image = image.astype(np.uint8)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    return image
+    return (np.rollaxis(tensor.cpu().detach().numpy(), 1, 4).squeeze(0).clip(0,1) * 65535).astype(np.uint16)
 
 def image_inference_tensor(
     model: ImageModelDescriptor, tensor: torch.Tensor
@@ -87,18 +76,16 @@ def image_inference_tensor(
     with torch.no_grad():
         return model(tensor)
 
-def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size, yield_extra_details=False):
+def tile_process(device: torch.device, model: ImageModelDescriptor, data: np.ndarray, scale, tile_size, tile_pad, yield_extra_details=False):
         """
         Process data [height, width, channel] into tiles of size [tile_size, tile_size, channel],
         feed them one by one into the model, then yield the resulting output tiles.
         """
 
-        tile_pad=16
-
         # [height, width, channel] -> [1, channel, height, width]
         data = np.rollaxis(data, 2, 0)
         data = np.expand_dims(data, axis=0)
-        data = np.clip(data, 0, 255)
+        data = np.clip(data, 0, 65535)
 
         batch, channel, height, width = data.shape
 
@@ -109,8 +96,8 @@ def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size
             x = i % tiles_y
             y = math.floor(i/tiles_y)
 
-            input_start_x = x * tile_size
-            input_start_y = y * tile_size
+            input_start_x = y * tile_size
+            input_start_y = x * tile_size
 
             input_end_x = min(input_start_x + tile_size, width)
             input_end_y = min(input_start_y + tile_size, height)
@@ -123,9 +110,10 @@ def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size
             input_tile_width = input_end_x - input_start_x
             input_tile_height = input_end_y - input_start_y
 
-            input_tile = data[:, :, input_start_y_pad:input_end_y_pad, input_start_x_pad:input_end_x_pad].astype(np.float32) / 255
+            input_tile = data[:, :, input_start_y_pad:input_end_y_pad, input_start_x_pad:input_end_x_pad].astype(np.float32) / 65535
 
-            output_tile = image_inference_tensor(model,torch.from_numpy(input_tile))
+
+            output_tile = image_inference_tensor(model,image_to_tensor(device, input_tile))
             progress = (i+1) / (tiles_y * tiles_x)
 
             output_start_x_tile = (input_start_x - input_start_x_pad) * scale
@@ -135,7 +123,7 @@ def tile_process(model: ImageModelDescriptor, data: np.ndarray, scale, tile_size
 
             output_tile = output_tile[:, :, output_start_y_tile:output_end_y_tile, output_start_x_tile:output_end_x_tile]
 
-            output_tile = (np.rollaxis(output_tile.cpu().detach().numpy(), 1, 4).squeeze(0).clip(0,1) * 255).astype(np.uint8)
+            output_tile = tensor_to_image(output_tile)
 
             if yield_extra_details:
                 yield (output_tile, input_start_x, input_start_y, input_tile_width, input_tile_height, progress)
@@ -314,17 +302,16 @@ class App:
             device = get_device()
 
             # load a model from disk
-            model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/scunet_color_real_psnr.pth")
+            model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/scunet_color_real_psnr.pth").eval().to(device)
             # make sure it's an image to image model
             assert isinstance(model, ImageModelDescriptor)
 
-            model.eval()
-
             # read image out send it to the GPU
-            imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_COLOR)
+            imagecv2in = cv2.imread(str("/tmp/starless.tif"), cv2.IMREAD_UNCHANGED)
             original_height, original_width, channels = imagecv2in.shape
 
-            tile_size = 1024
+            tile_size = 512
+            tile_pad = 144
             scale = 1
 
             # Because tiles may not fit perfectly, we resize to the closest multiple of tile_size
@@ -333,14 +320,14 @@ class App:
             # Allocate an image to save the tiles
             imgresult = cv2.copyMakeBorder(imgcv2resized,0,0,0,0,cv2.BORDER_REPLICATE)
 
-            for i, tile in enumerate(tile_process(model, imgcv2resized, scale, tile_size, yield_extra_details=True)):
+            for i, tile in enumerate(tile_process(device,model, imgcv2resized, scale, tile_size, tile_pad, yield_extra_details=True)):
 
                 if tile is None:
                     break
 
                 tile_data, x, y, w, h, p = tile
                 if w != 0 and h != 0 :
-                    imgresult[x*scale:x*scale+tile_size,y*scale:y*scale+tile_size] = tile_data
+                    imgresult[x*scale:x*scale+tile_size*scale,y*scale:y*scale+tile_size*scale] = tile_data
 
             # Resize back to the expected size
             imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
@@ -397,6 +384,7 @@ class App:
             original_height, original_width, channels = imagecv2in.shape
 
             tile_size = 256
+            tile_pad = 16
             scale = 2
 
             # Because tiles may not fit perfectly, we resize to the closest multiple of tile_size
@@ -405,7 +393,7 @@ class App:
             # Allocate an image to save the tiles
             imgresult = cv2.resize(imgcv2resized,None,fx=scale,fy=scale,interpolation=cv2.INTER_CUBIC)
 
-            for i, tile in enumerate(tile_process(model, imgcv2resized, scale, tile_size, yield_extra_details=True)):
+            for i, tile in enumerate(tile_process(device, model, imgcv2resized, scale, tile_size, tile_pad, yield_extra_details=True)):
 
                 if tile is None:
                     break
@@ -417,7 +405,7 @@ class App:
                 print("w : "+str(w))
                 print("h : "+str(h))
                 if w != 0 and h != 0 :
-                    imgresult[x*scale:x*scale+w*scale,y*scale:y*scale+h*scale] = tile_data
+                    imgresult[x*scale:x*scale+tile_size*scale,y*scale:y*scale+tile_size*scale] = tile_data
 
             # Resize back to the expected size
             imagecv2out = cv2.resize(imgresult,(original_width*scale,original_height*scale),interpolation=cv2.INTER_CUBIC)
