@@ -58,11 +58,7 @@ def run_shell_command(command_line):
 
 # suppported for SCUNet : Nvidia GPU / Apple MPS / DirectML on Windows / CPU
 def get_device() -> torch.device:
-    if os.name == 'nt':
-        import torch_directml
-        return torch_directml.default_device()
-    else:
-        return torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
+    return torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
 def image_to_tensor(img: np.ndarray) -> torch.Tensor:
     img = img.astype(np.float32) / 255.0
