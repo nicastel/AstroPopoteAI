@@ -373,19 +373,17 @@ class App:
             device = get_device()
 
             # load a model from disk
-            model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/AstroSleuthV1.pth")
+            model = ModelLoader().load_from_file(r"/content/AstroPopoteAI/AstroSleuthV1.pth").eval().to(device)
             # make sure it's an image to image model
             assert isinstance(model, ImageModelDescriptor)
 
-            model.eval()
-
             # read image out send it to the GPU
-            imagecv2in = cv2.imread(str("/content/AstroPopoteAI/result_final.tif"), cv2.IMREAD_COLOR)
+            imagecv2in = cv2.imread(str("/content/AstroPopoteAI/result_final.tif"), cv2.IMREAD_UNCHANGED)
             original_height, original_width, channels = imagecv2in.shape
 
             tile_size = 256
             tile_pad = 16
-            scale = 2
+            scale = 4
 
             # Because tiles may not fit perfectly, we resize to the closest multiple of tile_size
             imgcv2resized = cv2.resize(imagecv2in,(max(original_width//tile_size * tile_size, tile_size),max(original_height//tile_size * tile_size, tile_size)),interpolation=cv2.INTER_CUBIC)
